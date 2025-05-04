@@ -34,13 +34,12 @@
     .login-container {
       position: relative;
       z-index: 1;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
       padding: 40px 30px;
       width: 100%;
       max-width: 400px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
       animation: fadeInUp 0.7s ease;
     }
 
@@ -51,12 +50,12 @@
 
     .header h1 {
       font-size: 34px;
-      color: #ffffff;
+      color: #333;
       letter-spacing: 1px;
     }
 
     .header p {
-      color: #ddd;
+      color: #888;
       font-size: 15px;
     }
 
@@ -69,16 +68,30 @@
       width: 100%;
       padding: 14px 12px;
       background: rgba(255, 255, 255, 0.8);
-      border: none;
+      border: 1px solid #ccc;
       border-radius: 10px;
       font-size: 15px;
       outline: none;
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, border-color 0.3s ease;
     }
 
     .form-group input:focus {
       background: #fff;
-      box-shadow: 0 0 0 2px #007bff66;
+      border-color: #007bff;
+    }
+
+    .form-group input[type="password"] {
+      padding-right: 40px;
+    }
+
+    .show-password-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 16px;
+      color: #007bff;
     }
 
     .btn {
@@ -105,13 +118,51 @@
     }
 
     .footer a {
-      color: #ffffff;
+      color: #007bff;
       text-decoration: none;
       font-weight: 500;
     }
 
     .footer a:hover {
       text-decoration: underline;
+    }
+
+    /* Popup for invalid email */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px 40px;
+      border-radius: 15px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      max-width: 350px;
+    }
+
+    .popup p {
+      color: #d9534f;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .popup .close-btn {
+      display: block;
+      margin-top: 10px;
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .popup .close-btn:hover {
+      background-color: #c9302c;
     }
 
     @keyframes fadeInUp {
@@ -142,12 +193,13 @@
       <p>Welcome back. Let’s get you signed in.</p>
     </div>
 
-    <form class="login-form" action="/login" method="POST">
+    <form class="login-form" action="/login" method="POST" id="loginForm">
       <div class="form-group">
-        <input type="email" name="email" placeholder="Email address" required />
+        <input type="email" name="email" id="email" placeholder="Email address" required />
       </div>
       <div class="form-group">
-        <input type="password" name="password" placeholder="Password" required />
+        <input type="password" name="password" id="password" placeholder="Password" required />
+        <span class="show-password-btn" onclick="togglePassword()">Show</span>
       </div>
       <button type="submit" class="btn">Sign In</button>
     </form>
@@ -157,6 +209,44 @@
     </div>
   </div>
 
-  <script src="/public/js/theme.js"></script>
+  <!-- Invalid email popup -->
+  <div class="popup" id="popup">
+    <p>Invalid email address. Please check and try again.</p>
+    <button class="close-btn" onclick="closePopup()">Close</button>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const passwordField = document.getElementById('password');
+      const showPasswordBtn = document.querySelector('.show-password-btn');
+      if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        showPasswordBtn.textContent = 'Hide';
+      } else {
+        passwordField.type = 'password';
+        showPasswordBtn.textContent = 'Show';
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      const email = document.getElementById('email').value;
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+
+      if (!emailRegex.test(email)) {
+        event.preventDefault();
+        showPopup();
+      }
+    });
+
+    function showPopup() {
+      const popup = document.getElementById('popup');
+      popup.style.display = 'block';
+    }
+
+    function closePopup() {
+      const popup = document.getElementById('popup');
+      popup.style.display = 'none';
+    }
+  </script>
 </body>
 </html>
