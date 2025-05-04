@@ -229,6 +229,18 @@ app.get('/users', (req, res) => {
   });
 });
 
+// Hash password in /create-user route
+bcrypt.hash(password, 10, (err, hashedPassword) => {
+  if (err) return res.status(500).json({ error: 'Password hashing failed' });
+
+  users.push({ email, password: hashedPassword });
+  fs.writeFile(usersPath, JSON.stringify(users, null, 2), (err) => {
+    if (err) return res.status(500).json({ error: 'Failed to save user data' });
+    res.status(201).json({ message: 'User created successfully' });
+  });
+});
+
+if (!fs.existsSync(file)) return file.includes('users') ? [] : {}; // Handle chats.json similarly
 
 // Start server
 app.listen(PORT, () => {
