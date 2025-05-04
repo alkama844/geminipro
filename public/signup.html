@@ -130,7 +130,6 @@
       margin-top: 10px;
     }
 
-    /* Popup styles */
     .popup {
       display: none;
       position: fixed;
@@ -205,7 +204,6 @@
     </div>
   </div>
 
-  <!-- Popup Modal -->
   <div id="popup" class="popup">
     <div class="popup-content">
       <span class="close-btn" onclick="closePopup()">&times;</span>
@@ -273,18 +271,15 @@
       const password = document.getElementById("password").value;
       const confirmPassword = document.getElementById("confirmPassword").value;
 
-      // Reset error messages
       document.getElementById("emailError").textContent = "";
       document.getElementById("passwordError").textContent = "";
 
-      // Email validation
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailPattern.test(email)) {
         document.getElementById("emailError").textContent = "Invalid email format";
         valid = false;
       }
 
-      // Password confirmation check
       if (password !== confirmPassword) {
         document.getElementById("passwordError").textContent = "Passwords do not match";
         valid = false;
@@ -293,24 +288,20 @@
       return valid;
     }
 
-    // Show Popup
     function showPopup(message) {
       const popup = document.getElementById("popup");
       const popupMessage = document.getElementById("popupMessage");
       popupMessage.textContent = message;
-      popup.style.display = "flex"; // Show the popup
+      popup.style.display = "flex";
     }
 
-    // Close Popup
     function closePopup() {
       const popup = document.getElementById("popup");
-      popup.style.display = "none"; // Hide the popup
+      popup.style.display = "none";
     }
 
-    // Example response handling
     document.querySelector('.signup-form').addEventListener('submit', function(event) {
-      event.preventDefault();  // Prevent form submission
-      // Simulate a successful signup response
+      event.preventDefault();
       showPopup("Signup successful! Welcome, nafij@pro.com");
     });
   </script>
