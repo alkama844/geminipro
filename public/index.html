@@ -1,1 +1,77 @@
-<!-- Landing Page HTML -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Chat</title>
+  <link rel="stylesheet" href="/public/styles.css">
+  <style>
+    /* Smooth fade-in animation */
+    .fade-in {
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    /* Text bounce animation */
+    .bounce {
+      animation: bounce 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* Button hover effect */
+    .btn {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+      transform: scale(1.1);
+    }
+
+    footer a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="fade-in">
+  <div class="landing-container">
+    <div class="intro">
+      <h1 class="bounce">Welcome to Gemini Chat</h1>
+      <p class="description">Your AI companion ready to chat and help you with anything! Connect, chat, and explore new ideas.</p>
+    </div>
+    <div class="buttons">
+      <button class="btn" onclick="location.href='/login'">Login</button>
+      <button class="btn" onclick="location.href='/signup'">Sign Up</button>
+    </div>
+    <footer>
+      <p>Made with ❤️ by <a href="https://fb.com/nafijrahaman2023" target="_blank">♛ N A F I J ♛</a></p>
+    </footer>
+  </div>
+
+  <script src="/public/js/theme.js"></script>
+</body>
+</html>
