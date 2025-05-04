@@ -13,8 +13,8 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json()); // Needed to parse JSON request body
-
+app.use(express.json()); // For parsing application/json
+app.use(express.urlencoded({ extended: true })); 
 const USERS_FILE = './data/users.json';
 const CHATS_FILE = './data/chats.json';
 
@@ -104,33 +104,52 @@ app.post('/api/login',
   }
 );
 
+const usersPath = path.join(__dirname, 'data', 'users.json');
+
+// CREATE USER
 app.post('/create-user', (req, res) => {
   const { email, password } = req.body;
-  const usersPath = path.join(__dirname, 'data', 'users.json');
 
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required.' });
+  }
+
+  // Read users file
   fs.readFile(usersPath, 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ error: 'Failed to read users' });
+    if (err) return res.status(500).json({ error: 'Failed to read users data' });
 
     let users = [];
     try {
       users = JSON.parse(data || '[]');
-    } catch (e) {}
+    } catch (e) {
+      return res.status(500).json({ error: 'Failed to parse users data' });
+    }
 
     if (users.some(u => u.email === email)) {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
 
-    users.push({ email, password }); // TIP: Hash password in real apps
-    fs.writeFile(usersPath, JSON.stringify(users, null, 2), err => {
-      if (err) return res.status(500).json({ success: false, message: 'Write failed' });
-      res.json({ success: true });
+    // Hash the password
+    bcrypt.hash(password, 10, (err, hashedPassword) => {
+      if (err) return res.status(500).json({ error: 'Password hashing failed' });
+
+      users.push({ email, password: hashedPassword });
+
+      fs.writeFile(usersPath, JSON.stringify(users, null, 2), err => {
+        if (err) return res.status(500).json({ error: 'Failed to save user data' });
+        res.status(201).json({ success: true, message: 'User created successfully' });
+      });
     });
   });
 });
 
+// CHECK IF USER EXISTS
 app.post('/check-user', (req, res) => {
   const { email } = req.body;
-  const usersPath = path.join(__dirname, 'data', 'users.json');
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
 
   fs.readFile(usersPath, 'utf8', (err, data) => {
     if (err) return res.status(500).json({ error: 'Failed to read users data' });
@@ -142,15 +161,12 @@ app.post('/check-user', (req, res) => {
       return res.status(500).json({ error: 'Failed to parse users data' });
     }
 
-    // Check if the email already exists
-    const userExists = users.some(u => u.email === email);
-    if (userExists) {
-      return res.status(400).json({ exists: true });
-    }
-
-    res.json({ exists: false });
+    const exists = users.some(u => u.email === email);
+    return res.status(200).json({ exists });
   });
 });
+
+
 
 // Logout
 app.get('/api/logout', (req, res) => {
@@ -233,18 +249,6 @@ app.get('/users', (req, res) => {
   });
 });
 
-// Hash password in /create-user route
-bcrypt.hash(password, 10, (err, hashedPassword) => {
-  if (err) return res.status(500).json({ error: 'Password hashing failed' });
-
-  users.push({ email, password: hashedPassword });
-  fs.writeFile(usersPath, JSON.stringify(users, null, 2), (err) => {
-    if (err) return res.status(500).json({ error: 'Failed to save user data' });
-    res.status(201).json({ message: 'User created successfully' });
-  });
-});
-
-if (!fs.existsSync(file)) return file.includes('users') ? [] : {}; // Handle chats.json similarly
 
 // Start server
 app.listen(PORT, () => {
