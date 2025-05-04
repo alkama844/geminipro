@@ -1,1 +1,144 @@
-<!-- Login Page HTML -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Gemini Chat</title>
+  <link rel="stylesheet" href="/public/styles.css">
+  <style>
+    /* General page styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f7f7f7;
+      color: #333;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-image: url('https://source.unsplash.com/1600x900/?technology,abstract');
+      background-size: cover;
+      background-position: center;
+      filter: blur(4px);
+    }
+
+    .login-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 400px;
+      z-index: 1;
+    }
+
+    .login-container .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-container .header h1 {
+      color: #007bff;
+      font-size: 30px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .login-container .header p {
+      font-size: 16px;
+      color: #555;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      color: #333;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .login-form input:focus {
+      border-color: #007bff;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .footer a {
+      color: #007bff;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* For blur effect */
+    .background-blur {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Blur -->
+  <div class="background-blur"></div>
+
+  <!-- Login Container -->
+  <div class="login-container">
+    <div class="header">
+      <h1>Login</h1>
+      <p>Welcome back! Please login to your account.</p>
+    </div>
+    
+    <!-- Login Form -->
+    <form class="login-form" action="/login" method="POST">
+      <input type="email" name="email" placeholder="Enter your email" required>
+      <input type="password" name="password" placeholder="Enter your password" required>
+      <button type="submit" class="btn">Login</button>
+    </form>
+
+    <!-- Signup Option -->
+    <div class="footer">
+      <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+    </div>
+  </div>
+
+  <script src="/public/js/theme.js"></script>
+</body>
+</html>
