@@ -121,4 +121,10 @@ app.get('/chat', (_, res) => res.sendFile(path.join(__dirname, 'public/chat.html
 app.get('/login', (_, res) => res.sendFile(path.join(__dirname, 'public/login.html')));
 app.get('/signup', (_, res) => res.sendFile(path.join(__dirname, 'public/signup.html')));
 
+const authMiddleware = require('./authMiddleware');
+
+// Apply the middleware to routes that need user authentication
+app.use('/chat', authMiddleware); // Ensures the user must be logged in to access chat page
+app.use('/history', authMiddleware); // Ensures the user must be logged in to access chat history
+                         
 app.listen(PORT, () => console.log(`Gemini Chat Pro running: http://localhost:${PORT}`));
