@@ -174,7 +174,7 @@
       <p>Join us and save your chat history!</p>
     </div>
 
-    <form class="signup-form" onsubmit="return validateForm()">
+    <form class="signup-form" id="signupForm" onsubmit="return validateForm()">
       <div class="input-wrapper">
         <input type="email" name="email" id="email" placeholder="Enter your email" required>
         <div id="emailError" class="error"></div>
@@ -281,15 +281,37 @@
       }
 
       if (valid) {
-        // Simulated server check
-        if (email === "already@exists.com") {
-          showPopup("User already exists. Try logging in.");
-        } else {
-          showPopup("Account created successfully!");
-        }
+        // Make an AJAX request to check if the email already exists in data/users.json
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/check-user', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+          const response = JSON.parse(xhr.responseText);
+          if (response.exists) {
+            showPopup("User already exists. Try logging in.");
+          } else {
+            createUser(email, password);
+          }
+        };
+        xhr.send(JSON.stringify({ email }));
       }
 
       return false;
+    }
+
+    function createUser(email, password) {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/create-user', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onload = function() {
+        const response = JSON.parse(xhr.responseText);
+        if (response.success) {
+          showPopup("Account created successfully!");
+        } else {
+          showPopup("Error creating account. Try again later.");
+        }
+      };
+      xhr.send(JSON.stringify({ email, password }));
     }
 
     function showPopup(message) {
