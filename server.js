@@ -13,28 +13,38 @@ const PORT = process.env.PORT || 3000;
 const USERS_FILE = './data/users.json';
 const CHATS_FILE = './data/chats.json';
 
+// Static files
 app.use(express.static('public'));
+
+// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(session({
-  secret: 'gemini_secret_key',
+  secret: process.env.SESSION_SECRET || 'gemini_secret_key', // Secure session secret from env variables
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: { secure: process.env.NODE_ENV === 'production' } // Use secure cookies in production
 }));
 
+// Helper Functions
 function readJSON(file) {
   try {
     if (!fs.existsSync(file)) return {};
     const data = fs.readFileSync(file, 'utf8');
     return data ? JSON.parse(data) : {};
-  } catch {
+  } catch (error) {
+    console.error('Error reading file:', error);
     return {};
   }
 }
 
 function writeJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+  try {
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('Error writing file:', error);
+  }
 }
 
 // Auth Middleware
@@ -46,15 +56,18 @@ app.post('/signup', async (req, res) => {
   const users = readJSON(USERS_FILE);
 
   if (users[email]) {
-    return res.json({ error: 'User already exists' });  // JSON response for existing user
+    return res.status(400).json({ error: 'User already exists' });  // JSON response for existing user
   }
 
-  const hashed = await bcrypt.hash(password, 10);
-  users[email] = { password: hashed };
-  writeJSON(USERS_FILE, users);
-  req.session.user = email;
-  
-  res.json({ message: 'Signup successful', user: email });  // JSON response for success
+  try {
+    const hashed = await bcrypt.hash(password, 10);
+    users[email] = { password: hashed };
+    writeJSON(USERS_FILE, users);
+    req.session.user = email;
+    res.status(201).json({ message: 'Signup successful', user: email });  // JSON response for success
+  } catch (error) {
+    res.status(500).json({ error: 'Signup failed' });
+  }
 });
 
 // Login
@@ -63,21 +76,28 @@ app.post('/login', async (req, res) => {
   const users = readJSON(USERS_FILE);
 
   if (!users[email]) {
-    return res.json({ error: 'Invalid email' });  // JSON response for invalid email
+    return res.status(400).json({ error: 'Invalid email' });  // JSON response for invalid email
   }
 
-  const match = await bcrypt.compare(password, users[email].password);
-  if (!match) {
-    return res.json({ error: 'Incorrect password' });  // JSON response for incorrect password
-  }
+  try {
+    const match = await bcrypt.compare(password, users[email].password);
+    if (!match) {
+      return res.status(400).json({ error: 'Incorrect password' });  // JSON response for incorrect password
+    }
 
-  req.session.user = email;
-  res.json({ message: 'Login successful', user: email });  // JSON response for success
+    req.session.user = email;
+    res.status(200).json({ message: 'Login successful', user: email });  // JSON response for success
+  } catch (error) {
+    res.status(500).json({ error: 'Login failed' });
+  }
 });
 
 // Logout
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Logout failed' });
+    }
     res.redirect('/');
   });
 });
@@ -91,6 +111,10 @@ app.get('/chat', authMiddleware, (req, res) => {
 app.post('/chat', authMiddleware, async (req, res) => {
   const prompt = req.body.prompt;
   const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!prompt) {
+    return res.status(400).json({ error: 'Prompt is required' });
+  }
 
   try {
     const result = await axios.post(
@@ -107,7 +131,8 @@ app.post('/chat', authMiddleware, async (req, res) => {
     writeJSON(CHATS_FILE, chats);
 
     res.json({ reply });
-  } catch {
+  } catch (error) {
+    console.error('Error with Gemini API:', error);
     res.status(500).send('Gemini API Error');
   }
 });
@@ -134,7 +159,8 @@ app.post('/regenerate', authMiddleware, async (req, res) => {
     writeJSON(CHATS_FILE, chats);
 
     res.json({ reply });
-  } catch {
+  } catch (error) {
+    console.error('Error with Gemini API:', error);
     res.status(500).send('Gemini API Error');
   }
 });
