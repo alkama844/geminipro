@@ -55,7 +55,7 @@ header {
   font-size: 1.8rem;
   font-weight: bold;
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   position: relative;
   z-index: 2;
 }
@@ -181,32 +181,38 @@ button:hover {
 
 /* === Thinking Indicator === */
 #thinking-indicator {
+  display: none; /* Default is hidden */
   text-align: center;
   font-style: italic;
   color: #ccc;
   margin-top: -10px;
+  font-size: 1.1rem;
+  position: absolute;
+  bottom: 10px; /* Adjust position as needed */
+  width: 100%;
 }
 
 /* === Drawer Styles === */
 .drawer {
   position: fixed;
   top: 0;
-  left: -300px;
+  left: -300px; /* Hidden initially */
   width: 280px;
   height: 100%;
   background-color: var(--header-bg);
-  box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
   padding: 1rem;
   transition: left 0.3s ease;
   z-index: 10;
 }
 
 .drawer.open {
-  left: 0;
+  left: 0; /* Show the drawer */
 }
 
 .drawer h3 {
   margin-top: 0;
+  color: #fff;
 }
 
 .drawer button {
@@ -225,6 +231,8 @@ button:hover {
 .drawer .close-btn {
   background: #ff4d4d;
   margin-top: 2rem;
+  color: white;
+  font-weight: bold;
 }
 
 #open-drawer {
@@ -250,4 +258,13 @@ button:hover {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Smooth transition for theme changes */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+input[type="text"], button, .message {
+  transition: background 0.3s ease, color 0.3s ease;
 }
