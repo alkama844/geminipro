@@ -6,6 +6,7 @@ const session = require('express-session');
 const path = require('path');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+const { body, validationResult } = require('express-validator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,11 +14,11 @@ const PORT = process.env.PORT || 3000;
 const USERS_FILE = './data/users.json';
 const CHATS_FILE = './data/chats.json';
 
+// Middleware setup
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Setup session
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gemini_secret_key',
   resave: false,
@@ -25,75 +26,84 @@ app.use(session({
   cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
 
-// Read JSON helper function
+// Helper functions
 function readJSON(file) {
   try {
-    if (!fs.existsSync(file)) return {};
+    if (!fs.existsSync(file)) return file.includes('users') ? [] : {};
     const data = fs.readFileSync(file, 'utf8');
-    return data ? JSON.parse(data) : {};
-  } catch (error) {
-    console.error('Error reading file:', error);
-    return {};
+    return data ? JSON.parse(data) : file.includes('users') ? [] : {};
+  } catch (err) {
+    console.error(`[ERROR] Reading ${file}:`, err.message);
+    return file.includes('users') ? [] : {};
   }
 }
 
-// Write JSON helper function
 function writeJSON(file, data) {
   try {
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error('Error writing file:', error);
+  } catch (err) {
+    console.error(`[ERROR] Writing ${file}:`, err.message);
   }
 }
 
-// Auth Middleware to protect routes
+// Auth middleware
 const authMiddleware = (req, res, next) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  if (!req.session.user) return res.status(401).json({ error: 'Unauthorized' });
   next();
 };
 
-// Signup route
-app.post('/signup', async (req, res) => {
-  const { email, password } = req.body;
-  const users = readJSON(USERS_FILE);
+// Sign up route
+app.post('/signup', 
+  body('email').isEmail(), 
+  body('password').isLength({ min: 6 }), 
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ error: 'Invalid email or password' });
 
-  // Check if user already exists
-  const existingUser = users.find(user => user.email === email);
-  if (existingUser) return res.status(400).json({ error: 'User already exists' });
+    const { email, password } = req.body;
+    const users = readJSON(USERS_FILE);
 
-  try {
-    const hashed = await bcrypt.hash(password, 10);
-    users.push({ email, password: hashed }); // Save new user
-    writeJSON(USERS_FILE, users);
-    req.session.user = email; // Set session user after signup
-    res.status(201).json({ message: 'Signup successful', user: email });
-  } catch (error) {
-    res.status(500).json({ error: 'Signup failed' });
+    if (users.find(u => u.email === email))
+      return res.status(400).json({ error: 'User already exists' });
+
+    try {
+      const hashed = await bcrypt.hash(password, 10);
+      users.push({ email, password: hashed });
+      writeJSON(USERS_FILE, users);
+      req.session.user = email;
+      res.status(201).json({ message: 'Signup successful', user: email });
+    } catch (err) {
+      res.status(500).json({ error: 'Signup failed' });
+    }
   }
-});
+);
 
 // Login route
-app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const users = readJSON(USERS_FILE);
+app.post('/login', 
+  body('email').isEmail(), 
+  body('password').notEmpty(), 
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ error: 'Invalid login credentials' });
 
-  // Check if user exists
-  const user = users.find(u => u.email === email);
-  if (!user) return res.status(400).json({ error: 'User not found, please signup' });
+    const { email, password } = req.body;
+    const users = readJSON(USERS_FILE);
+    const user = users.find(u => u.email === email);
+    if (!user) return res.status(400).json({ error: 'User not found' });
 
-  try {
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ error: 'Incorrect password' });
-    req.session.user = email; // Set session user after login
-    res.status(200).json({ message: 'Login successful', user: email });
-  } catch (error) {
-    res.status(500).json({ error: 'Login failed' });
+    try {
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) return res.status(400).json({ error: 'Incorrect password' });
+
+      req.session.user = email;
+      res.status(200).json({ message: 'Login successful', user: email });
+    } catch (err) {
+      res.status(500).json({ error: 'Login failed' });
+    }
   }
-});
+);
 
-// Logout route
+// Logout
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) return res.status(500).json({ error: 'Logout failed' });
@@ -101,27 +111,30 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// Gemini API wrapper
+// Gemini API call
 async function getGeminiReply(prompt) {
   const apiKey = process.env.GEMINI_API_KEY;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
   try {
-    const result = await axios.post(url, {
+    const { data } = await axios.post(url, {
       contents: [{ parts: [{ text: prompt }] }]
-    }, { headers: { 'Content-Type': 'application/json' } });
-    return { success: true, reply: result.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response' };
-  } catch (error) {
-    if (error.response?.status === 429) {
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    return { success: true, reply: data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response' };
+  } catch (err) {
+    if (err.response?.status === 429)
       return { success: false, error: 'Gemini API quota exceeded. Try again later.' };
-    }
+
     return { success: false, error: 'Gemini API Error' };
   }
 }
 
-// Chat route: Save and respond to chat prompt
+// Chat route
 app.post('/chat', authMiddleware, async (req, res) => {
-  const prompt = req.body.prompt;
+  const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
 
   const result = await getGeminiReply(prompt);
@@ -135,9 +148,9 @@ app.post('/chat', authMiddleware, async (req, res) => {
   res.json({ reply: result.reply });
 });
 
-// Regenerate last chat response
+// Regenerate response
 app.post('/regenerate', authMiddleware, async (req, res) => {
-  const lastPrompt = req.body.lastPrompt;
+  const { lastPrompt } = req.body;
   if (!lastPrompt) return res.status(400).json({ error: 'Missing prompt' });
 
   const result = await getGeminiReply(lastPrompt);
@@ -151,30 +164,31 @@ app.post('/regenerate', authMiddleware, async (req, res) => {
   res.json({ reply: result.reply });
 });
 
-// View chat history
+// Chat history
 app.get('/history', authMiddleware, (req, res) => {
   const chats = readJSON(CHATS_FILE);
   res.json(chats[req.session.user] || []);
 });
 
-// View all users (no longer admin-only)
+// Get all users
 app.get('/users', authMiddleware, (req, res) => {
   const users = readJSON(USERS_FILE);
   res.json(users);
 });
 
-// View all chat history (no longer admin-only)
+// Get all chats
 app.get('/chats', authMiddleware, (req, res) => {
   const chats = readJSON(CHATS_FILE);
   res.json(chats);
 });
 
-// Public Routes
+// Public HTML pages
 app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public/welcome.html')));
 app.get('/login', (_, res) => res.sendFile(path.join(__dirname, 'public/login.html')));
 app.get('/signup', (_, res) => res.sendFile(path.join(__dirname, 'public/signup.html')));
 app.get('/chat', authMiddleware, (_, res) => res.sendFile(path.join(__dirname, 'public/chat.html')));
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Gemini Chat Pro running at http://localhost:${PORT}`);
 });
