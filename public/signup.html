@@ -1,145 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign Up - Gemini Chat</title>
-  <link rel="stylesheet" href="/public/styles.css">
   <style>
-    /* General page styles */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f7f7f7;
-      color: #333;
+      background: url('https://source.unsplash.com/1600x900/?technology,abstract') no-repeat center center/cover;
       height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      background-image: url('https://source.unsplash.com/1600x900/?technology,abstract');
-      background-size: cover;
-      background-position: center;
-      filter: blur(4px);
+      justify-content: center;
+      filter: blur(0px);
+    }
+
+    .background-blur {
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(6px);
+      z-index: 0;
     }
 
     .signup-container {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: rgba(255, 255, 255, 0.8);
+      position: relative;
+      z-index: 1;
+      width: 400px;
       padding: 40px;
       border-radius: 15px;
+      background: rgba(255, 255, 255, 0.9);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      width: 400px;
-      z-index: 1;
     }
 
     .signup-container .header {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
     }
 
     .signup-container .header h1 {
+      font-size: 28px;
       color: #007bff;
-      font-size: 30px;
-      font-weight: bold;
       text-transform: uppercase;
+      margin: 0;
     }
 
     .signup-container .header p {
-      font-size: 16px;
       color: #555;
+      font-size: 14px;
     }
 
     .signup-form input {
       width: 100%;
-      padding: 15px;
-      margin-bottom: 20px;
-      border: 1px solid #ddd;
+      padding: 12px;
+      margin-top: 15px;
+      border: 1px solid #ccc;
       border-radius: 8px;
-      font-size: 16px;
-      color: #333;
-      outline: none;
-      transition: all 0.3s ease;
+      font-size: 15px;
     }
 
-    .signup-form input:focus {
-      border-color: #007bff;
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 14px;
+      font-size: 14px;
+      color: #007bff;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 20px;
     }
 
     .btn {
       width: 100%;
-      padding: 15px;
-      font-size: 18px;
-      background-color: #007bff;
-      color: white;
+      padding: 12px;
+      background: #007bff;
+      color: #fff;
       border: none;
       border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
+      font-size: 16px;
       font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
     }
 
     .btn:hover {
-      background-color: #0056b3;
-      transform: scale(1.05);
+      background: #0056b3;
+      transform: scale(1.02);
     }
 
     .footer {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 15px;
     }
 
     .footer a {
       color: #007bff;
       text-decoration: none;
-      font-size: 16px;
     }
 
     .footer a:hover {
       text-decoration: underline;
     }
 
-    /* For blur effect */
-    .background-blur {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.3);
-      backdrop-filter: blur(10px);
-      z-index: 0;
+    .strength-meter {
+      height: 6px;
+      border-radius: 4px;
+      margin-top: 6px;
+      background-color: #ddd;
+      transition: 0.3s;
+    }
+
+    .strength-text {
+      font-size: 13px;
+      margin-top: 6px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
   </style>
 </head>
 <body>
-  <!-- Background Blur -->
   <div class="background-blur"></div>
 
-  <!-- Signup Container -->
   <div class="signup-container">
     <div class="header">
       <h1>Sign Up</h1>
       <p>Join us and save your chat history!</p>
     </div>
-    
-    <!-- Signup Form -->
+
     <form class="signup-form" action="/signup" method="POST">
-      <input type="email" name="email" placeholder="Enter your email" required>
-      <input type="password" name="password" placeholder="Enter your password" required>
-      <input type="password" name="confirmPassword" placeholder="Confirm your password" required>
+      <div class="input-wrapper">
+        <input type="email" name="email" placeholder="Enter your email" required>
+      </div>
+
+      <div class="input-wrapper">
+        <input type="password" id="password" name="password" placeholder="Enter your password" required oninput="checkStrength()">
+        <span class="toggle-password" onclick="togglePassword('password')">Show</span>
+        <div id="strengthMeter" class="strength-meter"></div>
+        <div id="strengthText" class="strength-text">
+          <span id="strengthLabel">Enter a password</span>
+          <span id="strengthEmoji"></span>
+        </div>
+      </div>
+
+      <div class="input-wrapper">
+        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+        <span class="toggle-password" onclick="togglePassword('confirmPassword')">Show</span>
+      </div>
+
       <button type="submit" class="btn">Sign Up</button>
     </form>
 
-    <!-- Login Option -->
     <div class="footer">
       <p>Already have an account? <a href="/login">Login</a></p>
     </div>
   </div>
 
-  <script src="/public/js/theme.js"></script>
+  <script>
+    function togglePassword(id) {
+      const input = document.getElementById(id);
+      const toggle = input.nextElementSibling;
+      if (input.type === "password") {
+        input.type = "text";
+        toggle.textContent = "Hide";
+      } else {
+        input.type = "password";
+        toggle.textContent = "Show";
+      }
+    }
+
+    function checkStrength() {
+      const pwd = document.getElementById("password").value;
+      const bar = document.getElementById("strengthMeter");
+      const label = document.getElementById("strengthLabel");
+      const emoji = document.getElementById("strengthEmoji");
+
+      let strength = 0;
+      if (pwd.length >= 6) strength++;
+      if (/[A-Z]/.test(pwd)) strength++;
+      if (/\d/.test(pwd)) strength++;
+      if (/[\W_]/.test(pwd)) strength++;
+
+      switch (strength) {
+        case 0:
+          bar.style.backgroundColor = "#ccc";
+          label.textContent = "Enter a password";
+          emoji.textContent = "🔒";
+          break;
+        case 1:
+          bar.style.backgroundColor = "red";
+          label.textContent = "Very Weak";
+          emoji.textContent = "😭";
+          break;
+        case 2:
+          bar.style.backgroundColor = "orange";
+          label.textContent = "Weak";
+          emoji.textContent = "😕";
+          break;
+        case 3:
+          bar.style.backgroundColor = "gold";
+          label.textContent = "Okay";
+          emoji.textContent = "😌";
+          break;
+        case 4:
+          bar.style.backgroundColor = "limegreen";
+          label.textContent = "Strong!";
+          emoji.textContent = "🦾";
+          break;
+      }
+    }
+  </script>
 </body>
 </html>
