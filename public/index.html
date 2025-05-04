@@ -55,8 +55,7 @@
       margin: 0 auto 25px;
       overflow: hidden;
       border: 5px solid var(--primary);
-      animation: float 4s ease-in-out infinite;
-      transition: transform 0.6s ease;
+      animation: spin 8s linear infinite, float 4s ease-in-out infinite;
     }
 
     .avatar img {
@@ -65,14 +64,14 @@
       object-fit: cover;
     }
 
-    .avatar:hover {
-      transform: rotate(360deg);
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     @keyframes float {
-      0% { transform: translateY(0); }
+      0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
-      100% { transform: translateY(0); }
     }
 
     h1 {
@@ -88,6 +87,15 @@
       margin-bottom: 30px;
     }
 
+    p strong a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    p strong a:hover {
+      text-decoration: underline;
+    }
+
     .actions {
       display: flex;
       gap: 20px;
@@ -95,7 +103,7 @@
       flex-wrap: wrap;
     }
 
-    a {
+    a.button {
       background-color: var(--primary);
       color: #fff;
       padding: 14px 30px;
@@ -106,7 +114,7 @@
       border: 2px solid transparent;
     }
 
-    a:hover {
+    a.button:hover {
       background-color: white;
       color: var(--primary);
       border: 2px solid var(--primary);
@@ -127,7 +135,7 @@
         font-size: 2rem;
       }
 
-      a {
+      a.button {
         width: 100%;
         text-align: center;
       }
@@ -140,12 +148,12 @@
       <img src="https://raw.githubusercontent.com/alkama844/geminipro/refs/heads/main/res/IMG_20250503_175514-1.jpg" alt="Nafij Image" />
     </div>
     <h1>Gemini Chat Pro</h1>
-    <p>Your AI assistant, crafted with precision by <strong>♛ N A F I J ♛</strong></p>
+    <p>Your AI assistant, crafted with precision by <strong><a href="https://fb.com/nafijrahaman2023" target="_blank">♛ N A F I J  R A H A M A N ♛</a></strong></p>
     <div class="actions">
-      <a href="/login">Login</a>
-      <a href="/signup">Sign Up</a>
+      <a href="/login" class="button">Login</a>
+      <a href="/signup" class="button">Sign Up</a>
     </div>
-    <footer>&copy; 2025 All rights reserved by Nafij Rahanan</footer>
+    <footer>&copy; 2025 All rights reserved by Nafij Rahaman</footer>
   </div>
 </body>
 </html>
