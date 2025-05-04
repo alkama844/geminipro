@@ -55,7 +55,8 @@
       margin: 0 auto 25px;
       overflow: hidden;
       border: 5px solid var(--primary);
-      animation: spin 8s linear infinite, float 4s ease-in-out infinite;
+      animation: float 4s ease-in-out infinite;
+      transition: transform 0.6s ease;
     }
 
     .avatar img {
@@ -64,14 +65,14 @@
       object-fit: cover;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .avatar:hover {
+      transform: rotate(360deg);
     }
 
     @keyframes float {
-      0%, 100% { transform: translateY(0); }
+      0% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
     }
 
     h1 {
@@ -81,19 +82,32 @@
       margin-bottom: 10px;
     }
 
-    p {
+    .creator {
       font-size: 1.1rem;
       color: #4b5563;
       margin-bottom: 30px;
+      font-weight: 600;
     }
 
-    p strong a {
-      color: var(--primary);
-      text-decoration: none;
+    .creator .name {
+      font-weight: 800;
+      color: var(--text);
+      font-size: 1.2rem;
+      display: inline-flex;
+      align-items: center;
     }
 
-    p strong a:hover {
-      text-decoration: underline;
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #000;
+      color: #fff;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      margin-left: 6px;
+      font-size: 12px;
     }
 
     .actions {
@@ -103,7 +117,7 @@
       flex-wrap: wrap;
     }
 
-    a.button {
+    a {
       background-color: var(--primary);
       color: #fff;
       padding: 14px 30px;
@@ -114,7 +128,7 @@
       border: 2px solid transparent;
     }
 
-    a.button:hover {
+    a:hover {
       background-color: white;
       color: var(--primary);
       border: 2px solid var(--primary);
@@ -135,7 +149,7 @@
         font-size: 2rem;
       }
 
-      a.button {
+      a {
         width: 100%;
         text-align: center;
       }
@@ -148,10 +162,12 @@
       <img src="https://raw.githubusercontent.com/alkama844/geminipro/refs/heads/main/res/IMG_20250503_175514-1.jpg" alt="Nafij Image" />
     </div>
     <h1>Gemini Chat Pro</h1>
-    <p>Your AI assistant, crafted with precision by <strong><a href="https://fb.com/nafijrahaman2023" target="_blank">♛ N A F I J  R A H A M A N ♛</a></strong></p>
+    <p class="creator">
+      Created by <span class="name">Nafij <span class="verified-badge">✔</span></span>
+    </p>
     <div class="actions">
-      <a href="/login" class="button">Login</a>
-      <a href="/signup" class="button">Sign Up</a>
+      <a href="/login">Login</a>
+      <a href="/signup">Sign Up</a>
     </div>
     <footer>&copy; 2025 All rights reserved by Nafij Rahaman</footer>
   </div>
