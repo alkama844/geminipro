@@ -1,104 +1,136 @@
-const form = document.getElementById('chat-form');
-const input = document.getElementById('message-input');
-const messages = document.getElementById('messages');
-const regenerateBtn = document.getElementById('regenerate-btn');
-const thinkingIndicator = document.getElementById('thinking-indicator');
-const themeToggleBtn = document.getElementById('theme-toggle-btn');
-const openDrawerBtn = document.getElementById('open-drawer');
-const closeDrawerBtn = document.getElementById('close-drawer');
-const drawer = document.getElementById('drawer');
-const newChatBtn = document.getElementById('new-chat-btn');
-const loadChatsBtn = document.getElementById('load-chats-btn');
-const logoutBtn = document.getElementById('logout-btn');
+const chatBox = document.getElementById("chat-box");
+const userInput = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
+const regenerateBtn = document.getElementById("regenerate-btn");
+const logoutBtn = document.getElementById("logout-btn");
+const themeToggle = document.getElementById("theme-toggle");
+const thinkingIndicator = document.getElementById("thinking-indicator");
+const drawer = document.getElementById("drawer");
+const openDrawerBtn = document.getElementById("open-drawer");
+const closeDrawerBtn = drawer.querySelector(".close-btn");
+const chatList = document.getElementById("chat-list");
 
-let currentChatId = Date.now().toString();
-const email = sessionStorage.getItem("userEmail") || "guest@example.com";
+let session = null;
+let currentChatId = null;
+let lastUserMessage = "";
 
-function addMessage(text, type) {
-  const msg = document.createElement('div');
-  msg.className = `message ${type}`;
-  const avatar = document.createElement('img');
-  avatar.src = type === 'user' ? '/public/user.png' : '/public/ai.png';
-  avatar.className = 'msg-avatar';
-  const content = document.createElement('div');
-  content.textContent = text;
-  msg.appendChild(avatar);
-  msg.appendChild(content);
-  messages.appendChild(msg);
-  messages.scrollTop = messages.scrollHeight;
+function showMessage(sender, text) {
+  const message = document.createElement("div");
+  message.classList.add("message", sender);
+  message.innerHTML = `
+    <img src="${sender === 'user' ? 'assets/user.png' : 'assets/bot.png'}" alt="${sender}">
+    <div class="message-content">${text}</div>
+  `;
+  chatBox.appendChild(message);
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const userMsg = input.value.trim();
-  if (!userMsg) return;
+function toggleThinking(show) {
+  thinkingIndicator.style.display = show ? "block" : "none";
+}
 
-  addMessage(userMsg, 'user');
-  input.value = '';
-  thinkingIndicator.style.display = 'block';
+function loadSession() {
+  session = JSON.parse(localStorage.getItem("session"));
+  if (!session || !session.email) {
+    window.location.href = "login.html";
+  }
+}
 
-  try {
-    const res = await fetch('/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, message: userMsg, chatId: currentChatId })
+function saveChatLocally(chatId, chat) {
+  let history = JSON.parse(localStorage.getItem("chatHistory")) || {};
+  history[chatId] = chat;
+  localStorage.setItem("chatHistory", JSON.stringify(history));
+}
+
+function renderChat(chat) {
+  chatBox.innerHTML = "";
+  chat.forEach(msg => showMessage(msg.role === "user" ? "user" : "bot", msg.content));
+}
+
+function loadChat(chatId) {
+  fetch(`/chat/${chatId}`, {
+    headers: { "Authorization": session.email }
+  })
+    .then(res => res.json())
+    .then(data => {
+      currentChatId = chatId;
+      renderChat(data.chat);
     });
+}
 
-    const data = await res.json();
-    currentChatId = data.chatId;
-    addMessage(data.reply || 'Sorry, something went wrong.', 'bot');
-  } catch (err) {
-    console.error('Error:', err);
-    addMessage('Error contacting server.', 'bot');
-  } finally {
-    thinkingIndicator.style.display = 'none';
-  }
-});
-
-regenerateBtn.addEventListener('click', () => {
-  const lastMsg = messages.querySelector('.message.user:last-child');
-  if (lastMsg) {
-    addMessage(`Reprocessing: "${lastMsg.textContent}"`, 'bot');
-  }
-});
-
-newChatBtn.addEventListener('click', () => {
-  messages.innerHTML = '';
-  currentChatId = Date.now().toString();
-});
-
-loadChatsBtn.addEventListener('click', async () => {
-  try {
-    const res = await fetch(`/chats/${email}`);
-    const data = await res.json();
-    messages.innerHTML = '';
-    Object.values(data).flat().forEach(chat => {
-      addMessage(chat.user, 'user');
-      addMessage(chat.bot, 'bot');
+function refreshChatList() {
+  fetch(`/chats`, {
+    headers: { "Authorization": session.email }
+  })
+    .then(res => res.json())
+    .then(data => {
+      chatList.innerHTML = "";
+      data.chats.forEach(chat => {
+        const btn = document.createElement("button");
+        btn.textContent = chat.title || "Untitled Chat";
+        btn.onclick = () => loadChat(chat.id);
+        chatList.appendChild(btn);
+      });
     });
-  } catch (err) {
-    console.error('Chat history error:', err);
-  }
-});
+}
 
-logoutBtn.addEventListener('click', () => {
-  fetch('/logout')
-    .then(() => {
-      sessionStorage.clear();
-      window.location.href = '/login.html';
+function sendMessage(message) {
+  if (!message.trim()) return;
+
+  lastUserMessage = message;
+  showMessage("user", message);
+  userInput.value = "";
+  toggleThinking(true);
+
+  fetch("/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": session.email
+    },
+    body: JSON.stringify({ chatId: currentChatId, message })
+  })
+    .then(res => res.json())
+    .then(data => {
+      currentChatId = data.chatId;
+      showMessage("bot", data.reply);
+      toggleThinking(false);
+      saveChatLocally(data.chatId, data.chat);
+      refreshChatList();
+    })
+    .catch(err => {
+      console.error(err);
+      toggleThinking(false);
     });
+}
+
+sendBtn.onclick = () => sendMessage(userInput.value);
+userInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMessage(userInput.value);
 });
 
-openDrawerBtn.addEventListener('click', () => drawer.classList.add('open'));
-closeDrawerBtn.addEventListener('click', () => drawer.classList.remove('open'));
+regenerateBtn.onclick = () => {
+  if (lastUserMessage) sendMessage(lastUserMessage);
+};
 
-themeToggleBtn.addEventListener('click', () => {
-  document.body.classList.toggle('dark-theme');
-  localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-});
+logoutBtn.onclick = () => {
+  localStorage.removeItem("session");
+  window.location.href = "login.html";
+};
 
-window.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark-theme');
-  }
-});
+themeToggle.onclick = () => {
+  const currentTheme = document.documentElement.getAttribute("data-theme");
+  const nextTheme = currentTheme === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", nextTheme);
+  localStorage.setItem("theme", nextTheme);
+};
+
+window.onload = () => {
+  loadSession();
+  const savedTheme = localStorage.getItem("theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  refreshChatList();
+};
+
+openDrawerBtn.onclick = () => drawer.classList.add("open");
+closeDrawerBtn.onclick = () => drawer.classList.remove("open");
