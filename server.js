@@ -124,6 +124,30 @@ app.post('/create-user', (req, res) => {
   });
 });
 
+app.post('/check-user', (req, res) => {
+  const { email } = req.body;
+  const usersPath = path.join(__dirname, 'data', 'users.json');
+
+  fs.readFile(usersPath, 'utf8', (err, data) => {
+    if (err) return res.status(500).json({ error: 'Failed to read users data' });
+
+    let users = [];
+    try {
+      users = JSON.parse(data || '[]');
+    } catch (e) {
+      return res.status(500).json({ error: 'Failed to parse users data' });
+    }
+
+    // Check if the email already exists
+    const userExists = users.some(u => u.email === email);
+    if (userExists) {
+      return res.status(400).json({ exists: true });
+    }
+
+    res.json({ exists: false });
+  });
+});
+
 // Logout
 app.get('/api/logout', (req, res) => {
   req.session.destroy(err => {
