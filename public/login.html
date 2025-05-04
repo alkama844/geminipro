@@ -218,37 +218,57 @@
   </div>
 
   <script>
-    function togglePassword() {
-      const passwordField = document.getElementById('password');
-      const showPasswordBtn = document.querySelector('.show-password-btn');
-      if (passwordField.type === 'password') {
-        passwordField.type = 'text';
-        showPasswordBtn.textContent = 'Hide';
+  function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const showPasswordBtn = document.querySelector('.show-password-btn');
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text';
+      showPasswordBtn.textContent = 'Hide';
+    } else {
+      passwordField.type = 'password';
+      showPasswordBtn.textContent = 'Show';
+    }
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email) || password === "") {
+      showPopup("Please enter a valid email and password.");
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        window.location.href = "/chat.html";
       } else {
-        passwordField.type = 'password';
-        showPasswordBtn.textContent = 'Show';
+        showPopup(data.message || "Login failed. Please try again.");
       }
+    } catch (error) {
+      showPopup("An error occurred. Please try again later.");
     }
+  });
 
-    document.getElementById('loginForm').addEventListener('submit', function(event) {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  function showPopup(message) {
+    document.getElementById('popupMessage').textContent = message;
+    document.getElementById('popup').style.display = 'block';
+  }
 
-      if (!emailRegex.test(email) || password === "") {
-        event.preventDefault();
-        showPopup("Please enter a valid email and password.");
-      }
-    });
-
-    function showPopup(message) {
-      document.getElementById('popupMessage').textContent = message;
-      document.getElementById('popup').style.display = 'block';
-    }
-
-    function closePopup() {
-      document.getElementById('popup').style.display = 'none';
-    }
-  </script>
+  function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+  }
+</script>
 </body>
 </html>
