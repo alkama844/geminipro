@@ -162,6 +162,9 @@ app.get('/', (_, res) => {
 // Catch-all to redirect unknown routes to index.html (SPA fallback if needed)
 // app.get('*', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
+app.get('/login', (_, res) => res.redirect('/login.html'));
+app.get('/signup', (_, res) => res.redirect('/signup.html'));
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Gemini Chat Pro is live at http://localhost:${PORT}`);
