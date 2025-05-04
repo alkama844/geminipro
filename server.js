@@ -26,7 +26,7 @@ app.use(session({
   cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
 
-// Helper functions
+// Helper functions to read and write JSON data
 function readJSON(file) {
   try {
     if (!fs.existsSync(file)) return file.includes('users') ? [] : {};
