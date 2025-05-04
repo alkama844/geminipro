@@ -249,6 +249,23 @@ app.get('/users', (req, res) => {
   });
 });
 
+app.get('/chats', (req, res) => {
+  const chatPath = path.join(__dirname, 'data', 'chats.json');
+
+  try {
+    if (!fs.existsSync(chatPath)) {
+      return res.json({});
+    }
+
+    const data = fs.readFileSync(chatPath, 'utf8');
+    const chats = JSON.parse(data || '{}');
+    res.json(chats);
+  } catch (err) {
+    console.error('Failed to read chats:', err);
+    res.status(500).json({ error: 'Failed to load chat history' });
+  }
+});
+
 
 // Start server
 app.listen(PORT, () => {
