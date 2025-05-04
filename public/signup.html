@@ -123,6 +123,12 @@
       justify-content: space-between;
       align-items: center;
     }
+
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -136,7 +142,8 @@
 
     <form class="signup-form" action="/signup" method="POST">
       <div class="input-wrapper">
-        <input type="email" name="email" placeholder="Enter your email" required>
+        <input type="email" name="email" id="email" placeholder="Enter your email" required>
+        <div id="emailError" class="error"></div>
       </div>
 
       <div class="input-wrapper">
@@ -152,9 +159,10 @@
       <div class="input-wrapper">
         <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
         <span class="toggle-password" onclick="togglePassword('confirmPassword')">Show</span>
+        <div id="passwordError" class="error"></div>
       </div>
 
-      <button type="submit" class="btn">Sign Up</button>
+      <button type="submit" class="btn" onclick="return validateForm()">Sign Up</button>
     </form>
 
     <div class="footer">
@@ -214,6 +222,32 @@
           emoji.textContent = "🦾";
           break;
       }
+    }
+
+    function validateForm() {
+      let valid = true;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      // Reset error messages
+      document.getElementById("emailError").textContent = "";
+      document.getElementById("passwordError").textContent = "";
+
+      // Email validation
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        document.getElementById("emailError").textContent = "Invalid email format";
+        valid = false;
+      }
+
+      // Password confirmation check
+      if (password !== confirmPassword) {
+        document.getElementById("passwordError").textContent = "Passwords do not match";
+        valid = false;
+      }
+
+      return valid;
     }
   </script>
 </body>
