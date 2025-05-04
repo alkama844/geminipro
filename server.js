@@ -29,6 +29,14 @@ app.use(session({
   cookie: { secure: false } // Set true with HTTPS in production
 }));
 
+app.get('/check-auth', (req, res) => {
+  if (req.session && req.session.user) {
+    res.json({ loggedIn: true, user: req.session.user });
+  } else {
+    res.status(401).json({ loggedIn: false });
+  }
+});
+
 // Utils
 const readJSON = (file) => {
   try {
