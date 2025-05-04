@@ -11,9 +11,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let lastUserPrompt = "";
 
+  // Check if the user is logged in and load chat history
   fetch("/api/userinfo")
-    .then(res => res.json())
-    .then(data => {
+    .then((res) => res.json())
+    .then((data) => {
       const isGuest = !data.loggedIn;
       document.getElementById("welcome-user").textContent = isGuest
         ? "Hi Guest! Login to save your chats."
@@ -32,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Logout functionality
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
       await fetch("/api/logout");
@@ -39,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Append message to the chat box
   function appendMessage(sender, text) {
     const wrapper = document.createElement("div");
     wrapper.className = `message ${sender}`;
@@ -58,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
+  // Send message to the server
   async function sendMessage() {
     const prompt = input.value.trim();
     if (!prompt || isGenerating) return;
@@ -100,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
     isGenerating = false;
   }
 
+  // Stop generating a response
   function stopGeneration() {
     if (controller) controller.abort();
     stopBtn.disabled = true;
@@ -108,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     isGenerating = false;
   }
 
+  // Regenerate the AI response based on the last user prompt
   function regenerateResponse() {
     if (lastUserPrompt) {
       input.value = lastUserPrompt;
@@ -115,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Load chat history for logged-in users
   async function loadChatHistory() {
     try {
       const res = await fetch("/api/chats");
