@@ -25,7 +25,7 @@ app.use(session({
   cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
 
-// Read JSON helper
+// Read JSON helper function
 function readJSON(file) {
   try {
     if (!fs.existsSync(file)) return {};
@@ -37,7 +37,7 @@ function readJSON(file) {
   }
 }
 
-// Write JSON helper
+// Write JSON helper function
 function writeJSON(file, data) {
   try {
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
@@ -86,7 +86,6 @@ app.post('/login', async (req, res) => {
   try {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ error: 'Incorrect password' });
-
     req.session.user = email; // Set session user after login
     res.status(200).json({ message: 'Login successful', user: email });
   } catch (error) {
@@ -111,7 +110,6 @@ async function getGeminiReply(prompt) {
     const result = await axios.post(url, {
       contents: [{ parts: [{ text: prompt }] }]
     }, { headers: { 'Content-Type': 'application/json' } });
-
     return { success: true, reply: result.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response' };
   } catch (error) {
     if (error.response?.status === 429) {
@@ -159,22 +157,14 @@ app.get('/history', authMiddleware, (req, res) => {
   res.json(chats[req.session.user] || []);
 });
 
-// View all users (for admin)
+// View all users (no longer admin-only)
 app.get('/users', authMiddleware, (req, res) => {
-  // Check if user is admin (for demonstration, we just check if email is admin@example.com)
-  if (req.session.user !== 'admin@example.com') {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
   const users = readJSON(USERS_FILE);
   res.json(users);
 });
 
-// View all chat history (for admin)
+// View all chat history (no longer admin-only)
 app.get('/chats', authMiddleware, (req, res) => {
-  // Check if user is admin (for demonstration, we just check if email is admin@example.com)
-  if (req.session.user !== 'admin@example.com') {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
   const chats = readJSON(CHATS_FILE);
   res.json(chats);
 });
