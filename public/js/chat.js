@@ -31,19 +31,20 @@ function toggleThinking(show) {
   thinkingIndicator.style.display = show ? "block" : "none";
 }
 
-/function loadSession() {
+// Function to load session data
+function loadSession() {
   fetch("/api/session", { credentials: "include" })
     .then(res => res.json())
     .then(data => {
       if (data.loggedIn) {
-        session = { email: data.email }; // optional: store it locally if needed
+        session = { email: data.email }; // Store session locally
       } else {
-        window.location.href = "login.html";
+        window.location.href = "login.html"; // Redirect to login page if not logged in
       }
     })
     .catch(err => {
       console.error("Session check failed:", err);
-      window.location.href = "login.html";
+      window.location.href = "login.html"; // Redirect to login if session check fails
     });
 }
 
