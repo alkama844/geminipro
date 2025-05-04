@@ -58,13 +58,16 @@ const authMiddleware = (req, res, next) => {
 app.post('/signup', async (req, res) => {
   const { email, password } = req.body;
   const users = readJSON(USERS_FILE);
-  if (users[email]) return res.status(400).json({ error: 'User already exists' });
+
+  // Check if user already exists
+  const existingUser = users.find(user => user.email === email);
+  if (existingUser) return res.status(400).json({ error: 'User already exists' });
 
   try {
     const hashed = await bcrypt.hash(password, 10);
-    users[email] = { password: hashed };
+    users.push({ email, password: hashed }); // Save new user
     writeJSON(USERS_FILE, users);
-    req.session.user = email;  // Set session user after signup
+    req.session.user = email; // Set session user after signup
     res.status(201).json({ message: 'Signup successful', user: email });
   } catch (error) {
     res.status(500).json({ error: 'Signup failed' });
@@ -75,13 +78,16 @@ app.post('/signup', async (req, res) => {
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const users = readJSON(USERS_FILE);
-  if (!users[email]) return res.status(400).json({ error: 'Invalid email' });
+
+  // Check if user exists
+  const user = users.find(u => u.email === email);
+  if (!user) return res.status(400).json({ error: 'User not found, please signup' });
 
   try {
-    const match = await bcrypt.compare(password, users[email].password);
+    const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ error: 'Incorrect password' });
 
-    req.session.user = email;  // Set session user after login
+    req.session.user = email; // Set session user after login
     res.status(200).json({ message: 'Login successful', user: email });
   } catch (error) {
     res.status(500).json({ error: 'Login failed' });
@@ -155,8 +161,22 @@ app.get('/history', authMiddleware, (req, res) => {
 
 // View all users (for admin)
 app.get('/users', authMiddleware, (req, res) => {
+  // Check if user is admin (for demonstration, we just check if email is admin@example.com)
+  if (req.session.user !== 'admin@example.com') {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   const users = readJSON(USERS_FILE);
   res.json(users);
+});
+
+// View all chat history (for admin)
+app.get('/chats', authMiddleware, (req, res) => {
+  // Check if user is admin (for demonstration, we just check if email is admin@example.com)
+  if (req.session.user !== 'admin@example.com') {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const chats = readJSON(CHATS_FILE);
+  res.json(chats);
 });
 
 // Public Routes
