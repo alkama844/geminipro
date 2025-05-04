@@ -266,6 +266,62 @@ app.get('/chats', (req, res) => {
   }
 });
 
+// POST /chat - Handle chat with Gemini API and save chats
+app.post('/chat', async (req, res) => {
+  const { email, message, chatId } = req.body;
+  const timestamp = new Date().toISOString();
+
+  if (!email || !message) {
+    return res.status(400).json({ error: 'Missing email or message' });
+  }
+
+  try {
+    // Call Gemini API
+    const geminiRes = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY`,
+      {
+        contents: [{ parts: [{ text: message }] }]
+      }
+    );
+
+    const botReply = geminiRes.data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't respond, sorry.";
+
+    // Save to chats.json
+    const chatPath = path.join(__dirname, 'data', 'chats.json');
+    let chats = fs.existsSync(chatPath) ? JSON.parse(fs.readFileSync(chatPath, 'utf-8')) : {};
+
+    if (!chats[email]) chats[email] = {};
+
+    const chatKey = chatId || Date.now().toString();
+
+    if (!chats[email][chatKey]) chats[email][chatKey] = [];
+
+    chats[email][chatKey].push({
+      user: message,
+      bot: botReply,
+      timestamp
+    });
+
+    fs.writeFileSync(chatPath, JSON.stringify(chats, null, 2));
+
+    res.json({ reply: botReply, chatId: chatKey });
+
+  } catch (err) {
+    console.error('Gemini API Error:', err.message);
+    res.status(500).json({ error: 'Failed to get Gemini response' });
+  }
+});
+
+// GET /chats/:email - Fetch all user chats
+app.get('/chats/:email', (req, res) => {
+  const email = req.params.email;
+  const chatPath = path.join(__dirname, 'data', 'chats.json');
+
+  if (!fs.existsSync(chatPath)) return res.json({});
+
+  const chats = JSON.parse(fs.readFileSync(chatPath, 'utf-8'));
+  res.json(chats[email] || {});
+});
 
 // Start server
 app.listen(PORT, () => {
