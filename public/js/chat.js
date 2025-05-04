@@ -31,12 +31,20 @@ function toggleThinking(show) {
   thinkingIndicator.style.display = show ? "block" : "none";
 }
 
-// Load session from local storage
-function loadSession() {
-  session = JSON.parse(localStorage.getItem("session"));
-  if (!session || !session.email) {
-    window.location.href = "login.html"; // Redirect to login page if session is not valid
-  }
+/function loadSession() {
+  fetch("/api/session", { credentials: "include" })
+    .then(res => res.json())
+    .then(data => {
+      if (data.loggedIn) {
+        session = { email: data.email }; // optional: store it locally if needed
+      } else {
+        window.location.href = "login.html";
+      }
+    })
+    .catch(err => {
+      console.error("Session check failed:", err);
+      window.location.href = "login.html";
+    });
 }
 
 // Save chat history locally
