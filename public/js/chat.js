@@ -1,134 +1,87 @@
-let isGenerating = false;
-let controller = null;
+// Initialize chat variables
+let chatId = null;
+const userEmail = localStorage.getItem('email'); // Assuming email is stored in localStorage after login
+const chatContainer = document.getElementById('chat-container');
+const inputField = document.getElementById('user-input');
+const sendButton = document.getElementById('send-btn');
+const thinkingIndicator = document.getElementById('thinking-indicator'); // Assuming this is a DOM element showing the "thinking..." text
 
-document.addEventListener("DOMContentLoaded", () => {
-  const chatBox = document.getElementById("chat-box");
-  const input = document.getElementById("chat-input");
-  const sendBtn = document.getElementById("send-btn");
-  const regenBtn = document.getElementById("regen-btn");
-  const stopBtn = document.getElementById("stop-btn");
-  const logoutBtn = document.getElementById("logout-btn");
+// Fetch previous chats on page load (if any)
+window.onload = async () => {
+  if (userEmail) {
+    // Fetch and display previous chats
+    const response = await fetch(`/chats/${userEmail}`);
+    const chats = await response.json();
+    displayPreviousChats(chats);
+  } else {
+    alert('Please login to view your chats.');
+  }
+};
 
-  let lastUserPrompt = "";
-
-  // Check if the user is logged in and load chat history
-  fetch("/api/userinfo")
-    .then((res) => res.json())
-    .then((data) => {
-      const isGuest = !data.loggedIn;
-      document.getElementById("welcome-user").textContent = isGuest
-        ? "Hi Guest! Login to save your chats."
-        : `Hi ${data.email}!`;
-      if (!isGuest) loadChatHistory();
+// Display previous chats for a specific user
+function displayPreviousChats(chats) {
+  Object.keys(chats).forEach(chatKey => {
+    const chat = chats[chatKey];
+    chat.forEach(message => {
+      addMessageToChat(message.user, 'user');
+      addMessageToChat(message.bot, 'bot');
     });
+  });
+}
 
-  sendBtn.addEventListener("click", sendMessage);
-  regenBtn.addEventListener("click", regenerateResponse);
-  stopBtn.addEventListener("click", stopGeneration);
+// Send a new message to the backend
+async function sendMessage() {
+  const message = inputField.value.trim();
+  if (!message) return;
 
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+  // Show "thinking..." indicator
+  thinkingIndicator.style.display = 'block';
+
+  // Add user message to chat
+  addMessageToChat(message, 'user');
+
+  // Send message to backend
+  const response = await fetch('/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: userEmail,
+      message,
+      chatId
+    })
   });
 
-  // Logout functionality
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-      await fetch("/api/logout");
-      location.reload();
-    });
+  const data = await response.json();
+  if (response.ok) {
+    const botReply = data.reply;
+    chatId = data.chatId; // Update the chatId for this session
+    addMessageToChat(botReply, 'bot');
+  } else {
+    alert('Error: ' + data.error);
   }
 
-  // Append message to the chat box
-  function appendMessage(sender, text) {
-    const wrapper = document.createElement("div");
-    wrapper.className = `message ${sender}`;
+  // Hide "thinking..." indicator
+  thinkingIndicator.style.display = 'none';
 
-    const avatar = document.createElement("img");
-    avatar.src = sender === "user" ? "user.png" : "ai.png";
-    avatar.alt = sender;
-    avatar.className = "avatar";
+  // Clear input field
+  inputField.value = '';
+}
 
-    const msg = document.createElement("div");
-    msg.className = "msg-bubble";
-    msg.textContent = text;
+// Add message to the chat container
+function addMessageToChat(message, sender) {
+  const messageElement = document.createElement('div');
+  messageElement.classList.add('chat-message');
+  messageElement.classList.add(sender);
+  messageElement.textContent = message;
+  chatContainer.appendChild(messageElement);
+}
 
-    wrapper.appendChild(avatar);
-    wrapper.appendChild(msg);
-    chatBox.appendChild(wrapper);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
+// Listen for the send button click
+sendButton.addEventListener('click', sendMessage);
 
-  // Send message to the server
-  async function sendMessage() {
-    const prompt = input.value.trim();
-    if (!prompt || isGenerating) return;
-
-    lastUserPrompt = prompt;
-    appendMessage("user", prompt);
-    input.value = "";
-    input.disabled = true;
-    sendBtn.disabled = true;
-    regenBtn.disabled = true;
-    stopBtn.disabled = false;
-    isGenerating = true;
-
-    appendMessage("ai", "Thinking...");
-
-    controller = new AbortController();
-
-    try {
-      const res = await fetch("/api/gemini", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-        signal: controller.signal,
-      });
-
-      const data = await res.json();
-      const aiMessages = document.querySelectorAll(".message.ai .msg-bubble");
-      const latestAiMsg = aiMessages[aiMessages.length - 1];
-      latestAiMsg.textContent = data.response || "No response.";
-    } catch (err) {
-      const aiMessages = document.querySelectorAll(".message.ai .msg-bubble");
-      const latestAiMsg = aiMessages[aiMessages.length - 1];
-      latestAiMsg.textContent = "Request cancelled or error.";
-    }
-
-    input.disabled = false;
-    sendBtn.disabled = false;
-    regenBtn.disabled = false;
-    stopBtn.disabled = true;
-    isGenerating = false;
-  }
-
-  // Stop generating a response
-  function stopGeneration() {
-    if (controller) controller.abort();
-    stopBtn.disabled = true;
-    input.disabled = false;
-    sendBtn.disabled = false;
-    isGenerating = false;
-  }
-
-  // Regenerate the AI response based on the last user prompt
-  function regenerateResponse() {
-    if (lastUserPrompt) {
-      input.value = lastUserPrompt;
-      sendMessage();
-    }
-  }
-
-  // Load chat history for logged-in users
-  async function loadChatHistory() {
-    try {
-      const res = await fetch("/api/chats");
-      const data = await res.json();
-      data.chats.forEach(({ role, content }) => appendMessage(role, content));
-    } catch (err) {
-      console.error("Failed to load history:", err);
-    }
+// Optional: Listen for pressing 'Enter' to send a message
+inputField.addEventListener('keypress', (event) => {
+  if (event.key === 'Enter') {
+    sendMessage();
   }
 });
