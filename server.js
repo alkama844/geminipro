@@ -323,6 +323,13 @@ app.get('/chats/:email', (req, res) => {
   res.json(chats[email] || {});
 });
 
+app.get('/chat/:id', (req, res) => {
+  const chatId = req.params.id;
+  // Fetch chat with ID from database or file
+  const chat = chats[chatId]; 
+  res.json(chat);
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Gemini Chat Pro is live at http://localhost:${PORT}`);
