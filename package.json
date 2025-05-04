@@ -1,41 +1,27 @@
 {
   "name": "geminipro",
   "version": "1.0.0",
-  "description": "A full-featured Gemini chatbot like ChatGPT",
+  "description": "GeminiPro Chat Application",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "dotenv": "^16.3.1",
+    "axios": "^1.4.0",
+    "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "fs-extra": "^11.1.1"
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "dotenv": "^16.0.3",
+    "path": "^0.12.7"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20",
-    "eslint": "^8.31.0"
+    "nodemon": "^2.0.22"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=14.0.0"
   },
   "author": "NAFIJ",
-  "license": "ISC",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/nafijninja/geminipro.git"
-  },
-  "keywords": [
-    "chatbot",
-    "gemini",
-    "AI",
-    "express",
-    "node"
-  ],
-  "homepage": "https://github.com/nafijninja/geminipro",
-  "bugs": {
-    "url": "https://github.com/nafijninja/geminipro/issues"
-  }
+  "license": "MIT"
 }
