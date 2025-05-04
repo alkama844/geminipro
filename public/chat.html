@@ -1,1 +1,96 @@
-<!-- Chat UI HTML -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gemini Chat - Final</title>
+  <link rel="stylesheet" href="/public/styles.css" />
+  <link rel="icon" href="/public/favicon.ico" />
+</head>
+<body>
+  <div class="chat-background"></div>
+
+  <div class="chat-container">
+    <header class="chat-header">
+      <div class="user-info">
+        <img src="/public/user.png" alt="User Avatar" class="avatar" />
+        <div>
+          <h2>Hi, NafiJ 👋</h2>
+          <p>Thanks for using Gemini Chat</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="https://facebook.com/nafi.j" target="_blank" class="social-link">Facebook</a>
+        <button class="logout-btn">Logout</button>
+      </div>
+    </header>
+
+    <main class="chat-main">
+      <div class="messages" id="messages">
+        <!-- Messages will be dynamically inserted here -->
+      </div>
+    </main>
+
+    <footer class="chat-footer">
+      <form id="chat-form">
+        <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off" required />
+        <button type="submit" class="send-btn">Send</button>
+        <button type="button" id="regenerate-btn" class="regen-btn">↻</button>
+      </form>
+    </footer>
+  </div>
+
+  <script>
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+    const messages = document.getElementById('messages');
+    const regenerateBtn = document.getElementById('regenerate-btn');
+
+    function addMessage(text, type) {
+      const msg = document.createElement('div');
+      msg.className = `message ${type}`;
+      const avatar = document.createElement('img');
+      avatar.src = type === 'user' ? '/public/user.png' : '/public/ai.png';
+      avatar.className = 'msg-avatar';
+      const content = document.createElement('div');
+      content.textContent = text;
+      msg.appendChild(avatar);
+      msg.appendChild(content);
+      messages.appendChild(msg);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function saveChat() {
+      const history = messages.innerHTML;
+      localStorage.setItem('chatHistory', history);
+    }
+
+    function loadChat() {
+      const history = localStorage.getItem('chatHistory');
+      if (history) messages.innerHTML = history;
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
+      addMessage(userMsg, 'user');
+      input.value = '';
+      setTimeout(() => {
+        addMessage(`You said: "${userMsg}"`, 'bot');
+        saveChat();
+      }, 800);
+    });
+
+    regenerateBtn.addEventListener('click', () => {
+      const lastMsg = messages.querySelector('.message.user:last-child');
+      if (lastMsg) {
+        addMessage(`Reprocessing: "${lastMsg.textContent}"`, 'bot');
+        saveChat();
+      }
+    });
+
+    loadChat();
+  </script>
+</body>
+</html>
