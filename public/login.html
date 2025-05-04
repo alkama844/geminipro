@@ -269,6 +269,36 @@
   function closePopup() {
     document.getElementById('popup').style.display = 'none';
   }
+
+// Assuming your login form has an id of 'login-form' and input fields for email and password
+document.getElementById('login-form').addEventListener('submit', function (e) {
+  e.preventDefault(); // Prevent form submission
+
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  // Send login request to the server
+  fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include', // To include session cookie in the request
+    body: JSON.stringify({ email, password }) // Sending email and password in the request body
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.message === 'Login successful') {
+      // Redirect to chat page after successful login
+      window.location.href = '/chat.html'; // Update with the correct chat page URL
+    } else {
+      alert(data.error || 'Login failed');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred during login.');
+  });
+});
+    
 </script>
 </body>
 </html>
