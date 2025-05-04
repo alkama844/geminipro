@@ -148,6 +148,7 @@
       border-radius: 8px;
       text-align: center;
       width: 300px;
+      position: relative;
     }
 
     .popup .close-btn {
@@ -173,7 +174,7 @@
       <p>Join us and save your chat history!</p>
     </div>
 
-    <form class="signup-form" action="/signup" method="POST">
+    <form class="signup-form">
       <div class="input-wrapper">
         <input type="email" name="email" id="email" placeholder="Enter your email" required>
         <div id="emailError" class="error"></div>
@@ -214,13 +215,8 @@
     function togglePassword(id) {
       const input = document.getElementById(id);
       const toggle = input.nextElementSibling;
-      if (input.type === "password") {
-        input.type = "text";
-        toggle.textContent = "Hide";
-      } else {
-        input.type = "password";
-        toggle.textContent = "Show";
-      }
+      input.type = input.type === "password" ? "text" : "password";
+      toggle.textContent = input.type === "password" ? "Show" : "Hide";
     }
 
     function checkStrength() {
@@ -266,7 +262,7 @@
 
     function validateForm() {
       let valid = true;
-      const email = document.getElementById("email").value;
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
       const confirmPassword = document.getElementById("confirmPassword").value;
 
@@ -284,7 +280,16 @@
         valid = false;
       }
 
-      return valid;
+      if (valid) {
+        // Simulated server check
+        if (email === "already@exists.com") {
+          showPopup("User already exists. Try logging in.");
+        } else {
+          showPopup("Account created successfully!");
+        }
+      }
+
+      return false;
     }
 
     function showPopup(message) {
@@ -292,26 +297,12 @@
       const popupMessage = document.getElementById("popupMessage");
       popupMessage.textContent = message;
       popup.style.display = "flex";
-      setTimeout(closePopup, 2000);  // Auto-close popup after 2 seconds
+      setTimeout(closePopup, 2500);
     }
 
     function closePopup() {
-      const popup = document.getElementById("popup");
-      popup.style.display = "none";
+      document.getElementById("popup").style.display = "none";
     }
-
-    document.querySelector('.signup-form').addEventListener('submit', function(event) {
-      event.preventDefault();
-
-      const email = document.getElementById("email").value;
-      const userExists = email === "already@exists.com"; // Simulated check for existing user
-
-      if (userExists) {
-        showPopup("User already exists! Please try a different email.");
-      } else {
-        showPopup("Signup successful! Welcome, New Member😍");
-      }
-    });
   </script>
 </body>
 </html>
