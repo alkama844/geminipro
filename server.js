@@ -10,6 +10,9 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const USERS_FILE = './data/users.json';
+const CHATS_FILE = './data/chats.json';
+
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -19,9 +22,6 @@ app.use(session({
   resave: false,
   saveUninitialized: true
 }));
-
-const USERS_FILE = './data/users.json';
-const CHATS_FILE = './data/chats.json';
 
 function readJSON(file) {
   try {
@@ -37,6 +37,10 @@ function writeJSON(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
+// Auth Middleware
+const authMiddleware = require('./authMiddleware');
+
+// Signup
 app.post('/signup', async (req, res) => {
   const { email, password } = req.body;
   const users = readJSON(USERS_FILE);
@@ -48,6 +52,7 @@ app.post('/signup', async (req, res) => {
   res.sendStatus(200);
 });
 
+// Login
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const users = readJSON(USERS_FILE);
@@ -58,13 +63,20 @@ app.post('/login', async (req, res) => {
   res.sendStatus(200);
 });
 
+// Logout
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/');
   });
 });
 
-app.post('/chat', async (req, res) => {
+// Protected: Chat Page
+app.get('/chat', authMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/chat.html'));
+});
+
+// Protected: Chat Endpoint
+app.post('/chat', authMiddleware, async (req, res) => {
   const prompt = req.body.prompt;
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -77,23 +89,22 @@ app.post('/chat', async (req, res) => {
 
     const reply = result.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
 
-    if (req.session.user) {
-      const chats = readJSON(CHATS_FILE);
-      if (!chats[req.session.user]) chats[req.session.user] = [];
-      chats[req.session.user].push({ prompt, reply, timestamp: Date.now() });
-      writeJSON(CHATS_FILE, chats);
-    }
+    const chats = readJSON(CHATS_FILE);
+    if (!chats[req.session.user]) chats[req.session.user] = [];
+    chats[req.session.user].push({ prompt, reply, timestamp: Date.now() });
+    writeJSON(CHATS_FILE, chats);
 
     res.json({ reply });
-  } catch (err) {
+  } catch {
     res.status(500).send('Gemini API Error');
   }
 });
 
-app.post('/regenerate', async (req, res) => {
-  if (!req.session.user || !req.body.lastPrompt) return res.status(400).send('Missing prompt');
-
+// Protected: Regenerate
+app.post('/regenerate', authMiddleware, async (req, res) => {
   const lastPrompt = req.body.lastPrompt;
+  if (!lastPrompt) return res.status(400).send('Missing prompt');
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   try {
@@ -104,27 +115,29 @@ app.post('/regenerate', async (req, res) => {
     );
 
     const reply = result.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+
+    const chats = readJSON(CHATS_FILE);
+    if (!chats[req.session.user]) chats[req.session.user] = [];
+    chats[req.session.user].push({ prompt: lastPrompt, reply, timestamp: Date.now() });
+    writeJSON(CHATS_FILE, chats);
+
     res.json({ reply });
-  } catch (err) {
+  } catch {
     res.status(500).send('Gemini API Error');
   }
 });
 
-app.get('/history', (req, res) => {
-  if (!req.session.user) return res.json([]);
+// Protected: History
+app.get('/history', authMiddleware, (req, res) => {
   const chats = readJSON(CHATS_FILE);
   res.json(chats[req.session.user] || []);
 });
 
+// Public Routes
 app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public/welcome.html')));
-app.get('/chat', (_, res) => res.sendFile(path.join(__dirname, 'public/chat.html')));
 app.get('/login', (_, res) => res.sendFile(path.join(__dirname, 'public/login.html')));
 app.get('/signup', (_, res) => res.sendFile(path.join(__dirname, 'public/signup.html')));
 
-const authMiddleware = require('./authMiddleware');
-
-// Apply the middleware to routes that need user authentication
-app.use('/chat', authMiddleware); // Ensures the user must be logged in to access chat page
-app.use('/history', authMiddleware); // Ensures the user must be logged in to access chat history
-                         
-app.listen(PORT, () => console.log(`Gemini Chat Pro running: http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Gemini Chat Pro running at http://localhost:${PORT}`);
+});
