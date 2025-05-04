@@ -9,7 +9,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
-      background: #f0f0f0; /* Changed the background to a light color */
+      background: #f0f0f0;
       height: 100vh;
       display: flex;
       align-items: center;
@@ -292,6 +292,7 @@
       const popupMessage = document.getElementById("popupMessage");
       popupMessage.textContent = message;
       popup.style.display = "flex";
+      setTimeout(closePopup, 2000);  // Auto-close popup after 2 seconds
     }
 
     function closePopup() {
@@ -301,7 +302,15 @@
 
     document.querySelector('.signup-form').addEventListener('submit', function(event) {
       event.preventDefault();
-      showPopup("Signup successful! Welcome, New Member😍");
+
+      const email = document.getElementById("email").value;
+      const userExists = email === "already@exists.com"; // Simulated check for existing user
+
+      if (userExists) {
+        showPopup("User already exists! Please try a different email.");
+      } else {
+        showPopup("Signup successful! Welcome, New Member😍");
+      }
     });
   </script>
 </body>
