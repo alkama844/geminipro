@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const { body, validationResult } = require('express-validator');
 
+app.use(express.json()); // Needed to parse JSON request body
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -95,6 +96,30 @@ app.post('/api/login',
     res.status(200).json({ message: 'Login successful' });
   }
 );
+
+app.post('/create-user', (req, res) => {
+  const { email, password } = req.body;
+  const usersPath = path.join(__dirname, 'data', 'users.json');
+
+  fs.readFile(usersPath, 'utf8', (err, data) => {
+    if (err) return res.status(500).json({ error: 'Failed to read users' });
+
+    let users = [];
+    try {
+      users = JSON.parse(data || '[]');
+    } catch (e) {}
+
+    if (users.some(u => u.email === email)) {
+      return res.status(400).json({ success: false, message: 'User already exists' });
+    }
+
+    users.push({ email, password }); // TIP: Hash password in real apps
+    fs.writeFile(usersPath, JSON.stringify(users, null, 2), err => {
+      if (err) return res.status(500).json({ success: false, message: 'Write failed' });
+      res.json({ success: true });
+    });
+  });
+});
 
 // Logout
 app.get('/api/logout', (req, res) => {
