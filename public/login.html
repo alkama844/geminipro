@@ -213,7 +213,7 @@
   </div>
 
   <div class="popup" id="popup" role="alertdialog" aria-modal="true">
-    <p>Invalid email address. Please check and try again.</p>
+    <p id="popupMessage">Invalid email or password. Please check and try again.</p>
     <button class="close-btn" onclick="closePopup()">Close</button>
   </div>
 
@@ -232,14 +232,17 @@
 
     document.getElementById('loginForm').addEventListener('submit', function(event) {
       const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
       const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-      if (!emailRegex.test(email)) {
+
+      if (!emailRegex.test(email) || password.trim() === "") {
         event.preventDefault();
-        showPopup();
+        showPopup('Invalid email or password. Please check and try again.');
       }
     });
 
-    function showPopup() {
+    function showPopup(message) {
+      document.getElementById('popupMessage').textContent = message;
       document.getElementById('popup').style.display = 'block';
     }
 
