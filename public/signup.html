@@ -174,7 +174,7 @@
       <p>Join us and save your chat history!</p>
     </div>
 
-    <form class="signup-form">
+    <form class="signup-form" onsubmit="return validateForm()">
       <div class="input-wrapper">
         <input type="email" name="email" id="email" placeholder="Enter your email" required>
         <div id="emailError" class="error"></div>
@@ -196,7 +196,7 @@
         <div id="passwordError" class="error"></div>
       </div>
 
-      <button type="submit" class="btn" onclick="return validateForm()">Sign Up</button>
+      <button type="submit" class="btn">Sign Up</button>
     </form>
 
     <div class="footer">
