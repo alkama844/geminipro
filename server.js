@@ -165,6 +165,19 @@ app.get('/', (_, res) => {
 app.get('/login', (_, res) => res.redirect('/login.html'));
 app.get('/signup', (_, res) => res.redirect('/signup.html'));
 
+app.get('/users', (req, res) => {
+  const usersPath = path.join(__dirname, 'data', 'users.json');
+  fs.readFile(usersPath, 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error reading users.json:', err);
+      return res.status(500).json({ error: 'Unable to load user data' });
+    }
+    res.setHeader('Content-Type', 'application/json');
+    res.send(data);
+  });
+});
+
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Gemini Chat Pro is live at http://localhost:${PORT}`);
