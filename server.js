@@ -14,19 +14,18 @@ const PORT = process.env.PORT || 3000;
 const USERS_FILE = './data/users.json';
 const CHATS_FILE = './data/chats.json';
 
-// Middleware setup
+// Middleware
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gemini_secret_key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // set to true in production with HTTPS
+  cookie: { secure: false } // Set true with HTTPS in production
 }));
 
-// Helper functions
+// Utils
 const readJSON = (file) => {
   try {
     if (!fs.existsSync(file)) return file.includes('users') ? [] : {};
@@ -46,13 +45,13 @@ const writeJSON = (file, data) => {
   }
 };
 
-// Auth middleware
+// Middleware: auth check
 const authMiddleware = (req, res, next) => {
   if (!req.session.user) return res.status(401).json({ error: 'Unauthorized' });
   next();
 };
 
-// Signup route
+// Signup
 app.post('/api/signup',
   body('email').isEmail(),
   body('password').isLength({ min: 6 }),
@@ -76,7 +75,7 @@ app.post('/api/signup',
   }
 );
 
-// Login route
+// Login
 app.post('/api/login',
   body('email').isEmail(),
   body('password').notEmpty(),
@@ -105,13 +104,13 @@ app.get('/api/logout', (req, res) => {
   });
 });
 
-// Get current user info
+// User info
 app.get('/api/userinfo', (req, res) => {
   if (!req.session.user) return res.json({ loggedIn: false });
   res.json({ loggedIn: true, email: req.session.user });
 });
 
-// Gemini response function
+// Gemini chat response
 const getGeminiReply = async (prompt) => {
   const apiKey = process.env.GEMINI_API_KEY;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`;
@@ -123,7 +122,10 @@ const getGeminiReply = async (prompt) => {
       headers: { 'Content-Type': 'application/json' }
     });
 
-    return { success: true, response: data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response.' };
+    return {
+      success: true,
+      response: data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response.'
+    };
   } catch (err) {
     return { success: false, error: 'Gemini API error or quota exceeded' };
   }
@@ -146,17 +148,19 @@ app.post('/api/gemini', authMiddleware, async (req, res) => {
   res.json({ response: result.response });
 });
 
-// Get user chat history
+// Chat history
 app.get('/api/chats', authMiddleware, (req, res) => {
   const chats = readJSON(CHATS_FILE);
   res.json({ chats: chats[req.session.user] || [] });
 });
 
-// Static pages
-app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public', 'welcome.html')));
-app.get('/login.html', (_, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
-app.get('/signup.html', (_, res) => res.sendFile(path.join(__dirname, 'public', 'signup.html')));
-app.get('/chat.html', authMiddleware, (_, res) => res.sendFile(path.join(__dirname, 'public', 'chat.html')));
+// Serve index.html for root
+app.get('/', (_, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Catch-all to redirect unknown routes to index.html (SPA fallback if needed)
+// app.get('*', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // Start server
 app.listen(PORT, () => {
