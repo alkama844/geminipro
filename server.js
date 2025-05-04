@@ -78,6 +78,10 @@ app.post('/api/signup',
     }
   }
 );
+if (!process.env.GEMINI_API_KEY) {
+  return { success: false, error: 'API Key is missing' };
+}
+
 
 // Login
 app.post('/api/login',
