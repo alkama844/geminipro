@@ -1,8 +1,9 @@
 // authMiddleware.js
-
-module.exports = (req, res, next) => {
-  if (!req.session.user) {
-    return res.redirect('/login'); // Redirect to login if user is not authenticated
+const authMiddleware = (req, res, next) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: 'Unauthorized: Please log in first.' });
   }
-  next(); // Proceed to the next middleware/route if authenticated
+  next();
 };
+
+module.exports = authMiddleware;
