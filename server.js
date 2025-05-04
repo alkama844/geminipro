@@ -8,9 +8,12 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const { body, validationResult } = require('express-validator');
 
-app.use(express.json()); // Needed to parse JSON request body
+
 const app = express();
+
 const PORT = process.env.PORT || 3000;
+
+app.use(express.json()); // Needed to parse JSON request body
 
 const USERS_FILE = './data/users.json';
 const CHATS_FILE = './data/chats.json';
