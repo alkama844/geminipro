@@ -44,23 +44,35 @@ const authMiddleware = require('./authMiddleware');
 app.post('/signup', async (req, res) => {
   const { email, password } = req.body;
   const users = readJSON(USERS_FILE);
-  if (users[email]) return res.status(409).send('User already exists');
+
+  if (users[email]) {
+    return res.json({ error: 'User already exists' });  // JSON response for existing user
+  }
+
   const hashed = await bcrypt.hash(password, 10);
   users[email] = { password: hashed };
   writeJSON(USERS_FILE, users);
   req.session.user = email;
-  res.sendStatus(200);
+  
+  res.json({ message: 'Signup successful', user: email });  // JSON response for success
 });
 
 // Login
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const users = readJSON(USERS_FILE);
-  if (!users[email]) return res.status(401).send('Invalid email');
+
+  if (!users[email]) {
+    return res.json({ error: 'Invalid email' });  // JSON response for invalid email
+  }
+
   const match = await bcrypt.compare(password, users[email].password);
-  if (!match) return res.status(403).send('Incorrect password');
+  if (!match) {
+    return res.json({ error: 'Incorrect password' });  // JSON response for incorrect password
+  }
+
   req.session.user = email;
-  res.sendStatus(200);
+  res.json({ message: 'Login successful', user: email });  // JSON response for success
 });
 
 // Logout
