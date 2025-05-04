@@ -1,0 +1,1 @@
+// Chat logic and Gemini API integration
