@@ -158,7 +158,7 @@ function sendMessage(message) {
       if (err.message.includes("Gemini backend error")) {
         showMessage("bot", "Sorry, we couldn't process your request right now. Please try again later.");
       } else {
-        showMessage(thanks for using ⚡✨");
+        showMessage("bot", "Thanks for using ⚡✨");
       }
     })
     .finally(() => {
