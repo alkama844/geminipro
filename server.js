@@ -255,33 +255,8 @@ app.get('/users', (req, res) => {
   });
 });
 
-// ===== Gemini Chat Utility Function =====
-const getGeminiReply = async (prompt) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`;
-
-  try {
-    const { data } = await axios.post(
-      url,
-      { contents: [{ parts: [{ text: prompt }] }] },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!reply) {
-      console.error('Gemini API returned an unexpected response:', data);
-      return { success: false, error: 'No valid response from Gemini API' };
-    }
-
-    return { success: true, response: reply };
-  } catch (err) {
-    console.error('Gemini API Error:', err.message);
-    return { success: false, error: 'Gemini API error or quota exceeded' };
-  }
-};
-
 // ===== Route 1: Authenticated Session-Based Chat =====
-app.post('/api/gemini', authMiddleware, async (req, res) => {
+app.post('/api/gemini', async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
 
@@ -323,11 +298,9 @@ app.post('/chat', async (req, res) => {
   }
 
   try {
-    // Call Gemini for reply
     const result = await getGeminiReply(message);
     const botReply = result.success ? result.response : "I couldn't respond, sorry.";
 
-    // Save to JSON file
     const chatPath = path.join(__dirname, 'data', 'chats.json');
     let chats = fs.existsSync(chatPath) ? JSON.parse(fs.readFileSync(chatPath, 'utf-8')) : {};
 
