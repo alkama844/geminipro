@@ -288,12 +288,11 @@ app.get('/chats', (req, res) => {
   }
 });
 
-// Handle POST request to forward chat messages to Gemini API
 app.post("/chat", async (req, res) => {
   const { message, chatId } = req.body;
 
-  if (!message) {
-    return res.status(400).send({ error: "Message cannot be empty" });
+  if (!message || typeof message !== "string" || message.trim() === "") {
+    return res.status(400).json({ error: "Message cannot be empty or invalid." });
   }
 
   try {
@@ -314,29 +313,31 @@ app.post("/chat", async (req, res) => {
       }
     );
 
-    const text = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text || "No reply from Gemini.";
-    
-    // Simulate fetching or updating a chat
-    const chatData = {
-      id: chatId || `chat_${Date.now()}`,
-      title: message.slice(0, 20),
-      chat: [
-        { role: "user", content: message },
-        { role: "bot", content: text }
-      ]
-    };
+    const text = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
-    // TODO: Save to chats.json or DB here if user is logged in
+    if (!text) {
+      return res.status(500).json({ error: "Gemini gave no response." });
+    }
 
-    res.status(200).json({
+    const newChatId = chatId || `chat_${Date.now()}`;
+    const chat = [
+      { role: "user", content: message },
+      { role: "bot", content: text }
+    ];
+
+    // Optional: save to file/db here
+
+    return res.status(200).json({
       reply: text,
-      chatId: chatData.id,
-      chat: chatData.chat
+      chatId: newChatId,
+      chat
     });
 
   } catch (error) {
-    console.error("Gemini API error:", error?.response?.data || error.message);
-    res.status(500).send({ error: "Failed to generate response from Gemini." });
+    console.error("Gemini API Error:", error?.response?.data || error.message);
+    return res.status(500).json({
+      error: "Failed to generate a response. Please try again later."
+    });
   }
 });
 
