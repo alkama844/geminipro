@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Gemini Chat</title>
+  <link rel="stylesheet" href="/public/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: url('https://source.unsplash.com/1600x900/?technology,space') no-repeat center center/cover;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      color: #333;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 0;
+    }
+
+    .login-container {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      animation: fadeInUp 0.7s ease;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 34px;
+      color: #222;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 15px;
+    }
+
+    .form-group {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 12px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      background: #fff;
+      border-color: #007bff;
+    }
+
+    .form-group input[type="password"] {
+      padding-right: 40px;
+    }
+
+    .show-password-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 14px;
+      color: #007bff;
+      user-select: none;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+      transform: scale(1.03);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .footer a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px 40px;
+      border-radius: 15px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      max-width: 350px;
+    }
+
+    .popup p {
+      color: #d9534f;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .popup .close-btn {
+      display: block;
+      margin-top: 10px;
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .popup .close-btn:hover {
+      background-color: #c9302c;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 500px) {
+      .login-container {
+        margin: 20px;
+        padding: 30px 20px;
+      }
+
+      .btn {
+        font-size: 15px;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" aria-hidden="true"></div>
+
+  <div class="login-container" role="form" aria-labelledby="loginTitle">
+    <div class="header">
+      <h1 id="loginTitle">Gemini Chat</h1>
+      <p>Welcome back. Let’s get you signed in.</p>
+    </div>
+
+    <form class="login-form" action="/login" method="POST" id="loginForm" aria-labelledby="loginForm" role="form">
+      <div class="form-group">
+        <input type="email" name="email" id="email" placeholder="Email address" autocomplete="email" required aria-required="true" aria-label="Email address" />
+      </div>
+      <div class="form-group">
+        <input type="password" name="password" id="password" placeholder="Password" autocomplete="current-password" required aria-required="true" aria-label="Password" />
+        <span class="show-password-btn" onclick="togglePassword()">Show</span>
+      </div>
+      <button type="submit" class="btn">Sign In</button>
+    </form>
+
+    <div class="footer">
+      <p>Don't have an account? <a href="/signup">Create one</a></p>
+    </div>
+  </div>
+
+  <div class="popup" id="popup" role="alertdialog" aria-modal="true">
+    <p id="popupMessage">Please enter a valid email and password.</p>
+    <button class="close-btn" onclick="closePopup()">Close</button>
+  </div>
+
+  <script>
+  function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const showPasswordBtn = document.querySelector('.show-password-btn');
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text';
+      showPasswordBtn.textContent = 'Hide';
+    } else {
+      passwordField.type = 'password';
+      showPasswordBtn.textContent = 'Show';
+    }
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email) || password === "") {
+      showPopup("Please enter a valid email and password.");
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        window.location.href = "/chat.html";
+      } else {
+        showPopup(data.message || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      showPopup("An error occurred. Please try again later.");
+    }
+  });
+
+  function showPopup(message) {
+    document.getElementById('popupMessage').textContent = message;
+    document.getElementById('popup').style.display = 'block';
+  }
+
+  function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+  }
+
+// Assuming your login form has an id of 'login-form' and input fields for email and password
+document.getElementById('login-form').addEventListener('submit', function (e) {
+  e.preventDefault(); // Prevent form submission
+
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  // Send login request to the server
+  fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include', // To include session cookie in the request
+    body: JSON.stringify({ email, password }) // Sending email and password in the request body
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.message === 'Login successful') {
+      // Redirect to chat page after successful login
+      window.location.href = '/chat.html'; // Update with the correct chat page URL
+    } else {
+      alert(data.error || 'Login failed');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred during login.');
+  });
+});
+    
+</script>
+</body>
+</html>
