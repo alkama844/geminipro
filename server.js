@@ -224,43 +224,6 @@ app.get('/api/userinfo', (req, res) => {
   res.json({ loggedIn: true, email: req.session.user });
 });
 
-// Gemini chat response
-const getGeminiReply = async (prompt) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`;
-
-  try {
-    const { data } = await axios.post(url, {
-      contents: [{ parts: [{ text: prompt }] }]
-    }, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    return {
-      success: true,
-      response: data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response.'
-    };
-  } catch (err) {
-    return { success: false, error: 'Gemini API error or quota exceeded' };
-  }
-};
-
-// Chat route
-app.post('/api/gemini', authMiddleware, async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
-
-  const result = await getGeminiReply(prompt);
-  if (!result.success) return res.status(500).json({ error: result.error });
-
-  const chats = readJSON(CHATS_FILE);
-  if (!chats[req.session.user]) chats[req.session.user] = [];
-  chats[req.session.user].push({ role: 'user', content: prompt });
-  chats[req.session.user].push({ role: 'ai', content: result.response });
-  writeJSON(CHATS_FILE, chats);
-
-  res.json({ response: result.response });
-});
 
 // Chat history
 app.get('/api/chats', authMiddleware, (req, res) => {
@@ -289,6 +252,45 @@ app.get('/users', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(data);
   });
+});
+
+// Gemini chat response
+const getGeminiReply = async (prompt) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`;
+
+  try {
+    const { data } = await axios.post(url, {
+      contents: [{ parts: [{ text: prompt }] }]
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    return {
+      success: true,
+      response: data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response.'
+    };
+  } catch (err) {
+    console.error('Gemini API Error:', err.message);
+    return { success: false, error: 'Gemini API error or quota exceeded' };
+  }
+};
+
+// Chat route
+app.post('/api/gemini', authMiddleware, async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+
+  const result = await getGeminiReply(prompt);
+  if (!result.success) return res.status(500).json({ error: result.error });
+
+  const chats = readJSON(CHATS_FILE);
+  if (!chats[req.session.user]) chats[req.session.user] = [];
+  chats[req.session.user].push({ role: 'user', content: prompt });
+  chats[req.session.user].push({ role: 'ai', content: result.response });
+  writeJSON(CHATS_FILE, chats);
+
+  res.json({ response: result.response });
 });
 
 app.get('/chats', (req, res) => {
@@ -320,7 +322,7 @@ app.post('/chat', async (req, res) => {
   try {
     // Call Gemini API
     const geminiRes = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [{ parts: [{ text: message }] }]
       }
@@ -334,7 +336,7 @@ app.post('/chat', async (req, res) => {
 
     if (!chats[email]) chats[email] = {};
 
-    const chatKey = chatId || Date.now().toString();
+    const chatKey = chatId || Date.now().toString();  // Ensure a new chat key if not provided
 
     if (!chats[email][chatKey]) chats[email][chatKey] = [];
 
