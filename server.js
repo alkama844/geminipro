@@ -18,7 +18,13 @@ app.use(express.urlencoded({ extended: true }));
 const USERS_FILE = './data/users.json';
 const CHATS_FILE = './data/chats.json';
 
+console.log('Before defining the function');
+const getGeminiReply = async (prompt) => {
+  // Function implementation
+};
+console.log('After defining the function');
 
+console.log(`Node version: ${process.version}`);
 
 app.use(cors({
   origin: 'https://geminipronafij.onrender.com/',  // Change to your front-end URL
