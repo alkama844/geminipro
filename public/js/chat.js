@@ -20,7 +20,7 @@ function showMessage(sender, text) {
   const message = document.createElement("div");
   message.classList.add("message", sender);
   message.innerHTML = `
-    <img src="${sender === 'user' ? 'user.png' : 'assets/ai.png'}" alt="${sender}">
+    <img src="${sender === 'user' ? 'user.png' : 'ai.png'}" alt="${sender}">
     <div class="message-content">${text}</div>`;
   chatBox.appendChild(message);
   chatBox.scrollTop = chatBox.scrollHeight;
