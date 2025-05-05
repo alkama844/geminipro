@@ -288,41 +288,50 @@ app.get('/chats', (req, res) => {
   }
 });
 
-// ===== Route 3: Direct Chat via Email and ChatId (no auth middleware) =====
-app.post('/chat', async (req, res) => {
-  const { email, message, chatId } = req.body;
-  const timestamp = new Date().toISOString();
+// Handle POST request to forward chat messages to Gemini API
+app.post("/chat", async (req, res) => {
+  const { message, chatId } = req.body;
 
-  if (!email || !message) {
-    return res.status(400).json({ error: 'Missing email or message' });
+  if (!message) {
+    return res.status(400).send({ error: "Message cannot be empty" });
   }
 
   try {
-    const result = await getGeminiReply(message);
-    const botReply = result.success ? result.response : "I couldn't respond, sorry.";
+    const response = await axios.post(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=GEMINI_API_KEY",
+      {
+        contents: [
+          {
+            parts: [
+              { text: message }
+            ]
+          }
+        ]
+      },
+      {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
-    const chatPath = path.join(__dirname, 'data', 'chats.json');
-    let chats = fs.existsSync(chatPath) ? JSON.parse(fs.readFileSync(chatPath, 'utf-8')) : {};
+    const reply = response.data.reply;
+    const chat = {
+      chatId,
+      messages: [
+        { role: "user", content: message },
+        { role: "bot", content: reply }
+      ]
+    };
 
-    if (!chats[email]) chats[email] = {};
-
-    const chatKey = chatId || Date.now().toString();
-    if (!chats[email][chatKey]) chats[email][chatKey] = [];
-
-    chats[email][chatKey].push({
-      user: message,
-      bot: botReply,
-      timestamp
-    });
-
-    fs.writeFileSync(chatPath, JSON.stringify(chats, null, 2));
-    res.json({ reply: botReply, chatId: chatKey });
-
-  } catch (err) {
-    console.error('Gemini API Error:', err.message);
-    res.status(500).json({ error: 'Failed to get Gemini response' });
+    // Send back the reply from Gemini API
+    res.status(200).json({ reply, chatId, chat });
+  } catch (error) {
+    console.error("Error calling Gemini API:", error);
+    res.status(500).send({ error: "Failed to generate response from Gemini" });
   }
 });
+
 
 // GET /chats/:email - Fetch all user chats
 app.get('/chats/:email', (req, res) => {
