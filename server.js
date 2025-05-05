@@ -26,15 +26,10 @@ app.use(cors({
 }));
 
 app.get('/api/session', (req, res) => {
-  if (req.session.user) {
-    res.json({
-      loggedIn: true,
-      email: req.session.user.email
-    });
+  if (req.session && req.session.email) {
+    return res.json({ loggedIn: true, email: req.session.email });
   } else {
-    res.json({
-      loggedIn: false
-    });
+    return res.json({ loggedIn: false });
   }
 });
 
