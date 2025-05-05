@@ -304,6 +304,7 @@ app.get('/chats', (req, res) => {
 
     const data = fs.readFileSync(chatPath, 'utf8');
     const chats = // Gemini chat response
+// Gemini chat response
 const getGeminiReply = async (prompt) => {
   const apiKey = process.env.GEMINI_API_KEY;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`;
@@ -351,26 +352,14 @@ app.get('/chats', (req, res) => {
     }
 
     const data = fs.readFileSync(chatPath, 'utf8');
-    const chats = JSON.parse(data || '{}');
-    res.json(chats);
-  } catch (err) {JSON.parse(data || '{}');
-    res.json(chats);
+    const chats = JSON.parse(data);
+    return res.json(chats);
   } catch (err) {
-    console.error('Failed to read chats:', err);
-    res.status(500).json({ error: 'Failed to load chat history' });
+    console.error('Error reading chat history:', err.message);
+    return res.status(500).json({ error: 'Failed to load chat history' });
   }
 });
-
-// POST /chat - Handle chat with Gemini API and save chats
-app.post('/chat', async (req, res) => {
-  const { email, message, chatId } = req.body;
-  const timestamp = new Date().toISOString();
-
-// Gemini chat response
-const getGeminiReply = async (prompt) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`;
-
+    
   try {
     const { data } = await axios.post(url, {
       contents: [{ parts: [{ text: prompt }] }]
