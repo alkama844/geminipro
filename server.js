@@ -26,22 +26,23 @@ if (!process.env.GEMINI_API_KEY) {
 }
 
 // Middleware
-app.use(express.static('public'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gemini_secret_key',
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 },
-  cookie: { secure: false } // Set true with HTTPS in production
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    secure: false               // Set to true when using HTTPS
+  }
 }));
 
 app.get('/check-auth', (req, res) => {
-  if (req.session && req.session.user) {
-    res.json({ loggedIn: true, user: req.session.user });
+  const user = req.session?.user;
+
+  if (user) {
+    res.json({ loggedIn: true, user });
   } else {
-    res.status(401).json({ loggedIn: false });
+    res.status(401).json({ loggedIn: false, message: 'Not authenticated' });
   }
 });
 
