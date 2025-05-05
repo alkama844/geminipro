@@ -288,7 +288,7 @@ app.get('/chats', (req, res) => {
   }
 });
 
-app.post("/chat", async (req, res) => {
+
 app.post("/chat", async (req, res) => {
   const { message, chatId, history } = req.body;
 
