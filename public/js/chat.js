@@ -38,14 +38,14 @@ function loadSession() {
     .then(data => {
       if (data.loggedIn) {
         session = { email: data.email };
-        refreshChatList();
+        refreshChatList(); // Load chat list on session check
       } else {
-        window.location.href = "login.html";
+        window.location.href = "login.html"; // Redirect to login if not logged in
       }
     })
     .catch(err => {
       console.error("Session check failed:", err);
-      window.location.href = "login.html";
+      window.location.href = "login.html"; // Redirect to login on error
     });
 }
 
@@ -119,11 +119,11 @@ function sendMessage(message) {
       showMessage("bot", data.reply);
       toggleThinking(false);
       saveChatLocally(data.chatId, data.chat);
-      refreshChatList();
+      refreshChatList(); // Refresh the chat list after sending a message
     })
     .catch(err => {
       console.error(err);
-      toggleThinking(false);
+      toggleThinking(false); // Stop thinking indicator on error
     });
 }
 
@@ -139,13 +139,13 @@ regenerateBtn.onclick = () => {
 
 logoutBtn.onclick = () => {
   localStorage.removeItem("session");
-  window.location.href = "login.html";
+  window.location.href = "login.html"; // Redirect to login page on logout
 };
 
 newChatBtn.onclick = () => {
   currentChatId = null;
   lastUserMessage = "";
-  chatBox.innerHTML = "";
+  chatBox.innerHTML = ""; // Clear the chat window for a new chat
 };
 
 // Open/close drawer
@@ -154,5 +154,5 @@ closeDrawerBtn.onclick = () => drawer.classList.remove("open");
 
 // Init on load
 window.onload = () => {
-  loadSession();
+  loadSession(); // Load session when page loads
 };
