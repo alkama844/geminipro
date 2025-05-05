@@ -45,15 +45,20 @@ if (!process.env.GEMINI_API_KEY) {
   console.log('[INFO] GEMINI_API_KEY is set. Gemini features are ENABLED.');
 }
 
+
+
+app.set('trust proxy', 1); // trust Render's proxy
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'gemini_secret_key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
-    secure: process.env.NODE_ENV === "production", // true only in production
-    sameSite: "lax" // Helps prevent CSRF, allows cookies in normal usage
-  }
+    secret: 'yourSecretKey',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: true,           // important for HTTPS!
+        httpOnly: true,         // security best practice
+        sameSite: 'none',       // must be 'none' for cross-site cookies
+        maxAge: 1000 * 60 * 60 * 24 // 1 day
+    }
 }));
 
 app.get('/check-auth', (req, res) => {
