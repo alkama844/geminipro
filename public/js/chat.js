@@ -3,7 +3,6 @@ const userInput = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
 const regenerateBtn = document.getElementById("regenerate-btn");
 const logoutBtn = document.getElementById("logout-btn");
-const themeToggle = document.getElementById("theme-toggle");
 const thinkingIndicator = document.getElementById("thinking-indicator");
 const drawer = document.getElementById("drawer");
 const openDrawerBtn = document.getElementById("open-drawer");
@@ -143,13 +142,6 @@ logoutBtn.onclick = () => {
   window.location.href = "login.html";
 };
 
-themeToggle.onclick = () => {
-  const currentTheme = document.documentElement.getAttribute("data-theme");
-  const nextTheme = currentTheme === "dark" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", nextTheme);
-  localStorage.setItem("theme", nextTheme);
-};
-
 newChatBtn.onclick = () => {
   currentChatId = null;
   lastUserMessage = "";
@@ -163,6 +155,4 @@ closeDrawerBtn.onclick = () => drawer.classList.remove("open");
 // Init on load
 window.onload = () => {
   loadSession();
-  const savedTheme = localStorage.getItem("theme") || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
 };
