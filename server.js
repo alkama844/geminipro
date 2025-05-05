@@ -288,7 +288,6 @@ app.get('/chats', (req, res) => {
   }
 });
 
-
 app.post("/chat", async (req, res) => {
   const { message, chatId, history } = req.body;
 
@@ -318,6 +317,9 @@ app.post("/chat", async (req, res) => {
       }
     );
 
+    // Log the response data to check its structure
+    console.log("Gemini Response:", geminiRes.data);
+
     const text = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text || "No reply from Gemini.";
 
     // Build updated chat array
@@ -336,8 +338,11 @@ app.post("/chat", async (req, res) => {
 
   } catch (error) {
     console.error("Gemini API error:", error?.response?.data || error.message);
+
+    // Send a more detailed error response to the frontend for debugging
     res.status(500).json({
-      error: "Failed to generate a response. Please try again later."
+      error: "Failed to generate a response. Please try again later.",
+      details: error?.response?.data || error.message
     });
   }
 });
