@@ -18,6 +18,11 @@ app.use(express.urlencoded({ extended: true }));
 const USERS_FILE = './data/users.json';
 const CHATS_FILE = './data/chats.json';
 
+// Middleware
+ app.use(express.static('public'));
+ app.use(bodyParser.json());
+ app.use(bodyParser.urlencoded({ extended: true }));
+
 // Check Gemini API key status
 if (!process.env.GEMINI_API_KEY) {
   console.warn('[WARNING] GEMINI_API_KEY is missing. Gemini features will NOT work.');
