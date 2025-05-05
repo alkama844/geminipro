@@ -31,21 +31,22 @@ function toggleThinking(show) {
   thinkingIndicator.style.display = show ? "block" : "none";
 }
 
-// Load user session
+// Load user session if logged in
 function loadSession() {
   fetch("/api/session", { credentials: "include" })
     .then(res => res.json())
     .then(data => {
       if (data.loggedIn) {
         session = { email: data.email };
-        refreshChatList(); // Load chat list on session check
+        refreshChatList();
       } else {
-        window.location.href = "login.html"; // Redirect to login if not logged in
+        console.warn("No session found. Using local mode.");
+        loadLocalChats();
       }
     })
     .catch(err => {
-      console.error("Session check failed:", err);
-      window.location.href = "login.html"; // Redirect to login on error
+      console.warn("Session check failed. Using local mode.");
+      loadLocalChats();
     });
 }
 
@@ -56,6 +57,22 @@ function saveChatLocally(chatId, chat) {
   localStorage.setItem("chatHistory", JSON.stringify(history));
 }
 
+// Load chat history from localStorage
+function loadLocalChats() {
+  const history = JSON.parse(localStorage.getItem("chatHistory")) || {};
+  chatList.innerHTML = "";
+  Object.entries(history).forEach(([id, chat]) => {
+    const btn = document.createElement("button");
+    btn.textContent = `Local Chat ${id}`;
+    btn.onclick = () => {
+      currentChatId = id;
+      renderChat(chat);
+      drawer.classList.remove("open");
+    };
+    chatList.appendChild(btn);
+  });
+}
+
 // Render chat messages
 function renderChat(chat) {
   chatBox.innerHTML = "";
@@ -64,19 +81,28 @@ function renderChat(chat) {
 
 // Load chat by ID
 function loadChat(chatId) {
-  fetch(`/chat/${chatId}`, {
-    headers: { "Authorization": session.email }
-  })
-    .then(res => res.json())
-    .then(data => {
-      currentChatId = chatId;
-      renderChat(data.chat);
+  if (session) {
+    fetch(`/chat/${chatId}`, {
+      headers: { "Authorization": session.email }
     })
-    .catch(err => console.error("Error loading chat:", err));
+      .then(res => res.json())
+      .then(data => {
+        currentChatId = chatId;
+        renderChat(data.chat);
+      })
+      .catch(err => console.error("Error loading chat:", err));
+  } else {
+    const history = JSON.parse(localStorage.getItem("chatHistory")) || {};
+    if (history[chatId]) {
+      currentChatId = chatId;
+      renderChat(history[chatId]);
+    }
+  }
 }
 
 // Refresh chat list in drawer
 function refreshChatList() {
+  if (!session) return;
   fetch(`/chats`, {
     headers: { "Authorization": session.email }
   })
@@ -109,7 +135,7 @@ function sendMessage(message) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": session.email
+      ...(session && { "Authorization": session.email })
     },
     body: JSON.stringify({ chatId: currentChatId, message })
   })
@@ -119,11 +145,11 @@ function sendMessage(message) {
       showMessage("bot", data.reply);
       toggleThinking(false);
       saveChatLocally(data.chatId, data.chat);
-      refreshChatList(); // Refresh the chat list after sending a message
+      if (session) refreshChatList();
     })
     .catch(err => {
       console.error(err);
-      toggleThinking(false); // Stop thinking indicator on error
+      toggleThinking(false);
     });
 }
 
@@ -138,14 +164,20 @@ regenerateBtn.onclick = () => {
 };
 
 logoutBtn.onclick = () => {
-  localStorage.removeItem("session");
-  window.location.href = "login.html"; // Redirect to login page on logout
+  fetch("/api/logout", { method: "POST", credentials: "include" })
+    .then(() => {
+      session = null;
+      localStorage.clear();
+      alert("Logged out. Using local mode now.");
+      location.reload();
+    })
+    .catch(err => console.error("Logout failed:", err));
 };
 
 newChatBtn.onclick = () => {
   currentChatId = null;
   lastUserMessage = "";
-  chatBox.innerHTML = ""; // Clear the chat window for a new chat
+  chatBox.innerHTML = "";
 };
 
 // Open/close drawer
@@ -154,5 +186,5 @@ closeDrawerBtn.onclick = () => drawer.classList.remove("open");
 
 // Init on load
 window.onload = () => {
-  loadSession(); // Load session when page loads
+  loadSession();
 };
