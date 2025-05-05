@@ -14,7 +14,7 @@ let session = null;
 let currentChatId = null;
 let lastUserMessage = "";
 
-// Show message in chat function
+// Utility: Show a message
 function showMessage(sender, text) {
   const message = document.createElement("div");
   message.classList.add("message", sender);
@@ -25,12 +25,12 @@ function showMessage(sender, text) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Toggle "thinking..." indicator
+// Utility: Toggle thinking animation
 function toggleThinking(show) {
   thinkingIndicator.style.display = show ? "block" : "none";
 }
 
-// Load user session if logged in
+// Load user session (check cookies)
 function loadSession() {
   fetch("/api/session", { credentials: "include" })
     .then(res => res.json())
@@ -43,7 +43,7 @@ function loadSession() {
         loadLocalChats();
       }
     })
-    .catch(err => {
+    .catch(() => {
       console.warn("Session check failed. Using local mode.");
       loadLocalChats();
     });
@@ -51,12 +51,12 @@ function loadSession() {
 
 // Save chat to localStorage
 function saveChatLocally(chatId, chat) {
-  let history = JSON.parse(localStorage.getItem("chatHistory")) || {};
+  const history = JSON.parse(localStorage.getItem("chatHistory")) || {};
   history[chatId] = chat;
   localStorage.setItem("chatHistory", JSON.stringify(history));
 }
 
-// Load chat history from localStorage
+// Load local chats
 function loadLocalChats() {
   const history = JSON.parse(localStorage.getItem("chatHistory")) || {};
   chatList.innerHTML = "";
@@ -72,13 +72,13 @@ function loadLocalChats() {
   });
 }
 
-// Render chat messages
+// Render all messages
 function renderChat(chat) {
   chatBox.innerHTML = "";
   chat.forEach(msg => showMessage(msg.role === "user" ? "user" : "bot", msg.content));
 }
 
-// Load chat by ID
+// Load a specific chat by ID
 function loadChat(chatId) {
   if (session) {
     fetch(`/chat/${chatId}`, {
@@ -99,7 +99,7 @@ function loadChat(chatId) {
   }
 }
 
-// Refresh chat list in drawer
+// Refresh all available chats
 function refreshChatList() {
   if (!session) return;
   fetch(`/chats`, {
@@ -121,7 +121,7 @@ function refreshChatList() {
     .catch(err => console.error("Error refreshing chat list:", err));
 }
 
-// Send a message to the bot
+// MAIN: Send message to Gemini backend
 function sendMessage(message) {
   if (!message.trim()) return;
 
@@ -138,7 +138,10 @@ function sendMessage(message) {
     },
     body: JSON.stringify({ chatId: currentChatId, message })
   })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error("Gemini backend error.");
+      return res.json();
+    })
     .then(data => {
       currentChatId = data.chatId;
       showMessage("bot", data.reply);
@@ -147,21 +150,20 @@ function sendMessage(message) {
       if (session) refreshChatList();
     })
     .catch(err => {
-      console.error(err);
+      console.error("Error sending message:", err);
+      showMessage("bot", "Oops! Something went wrong. Try again.");
       toggleThinking(false);
     });
 }
 
-// Event listeners
+// Event handlers
 sendBtn.onclick = () => sendMessage(userInput.value);
 userInput.addEventListener("keydown", e => {
   if (e.key === "Enter") sendMessage(userInput.value);
 });
-
 regenerateBtn.onclick = () => {
   if (lastUserMessage) sendMessage(lastUserMessage);
 };
-
 logoutBtn.onclick = () => {
   fetch("/api/logout", { method: "POST", credentials: "include" })
     .then(() => {
@@ -172,18 +174,15 @@ logoutBtn.onclick = () => {
     })
     .catch(err => console.error("Logout failed:", err));
 };
-
 newChatBtn.onclick = () => {
   currentChatId = null;
   lastUserMessage = "";
   chatBox.innerHTML = "";
 };
-
-// Open/close drawer
 openDrawerBtn.onclick = () => drawer.classList.add("open");
 closeDrawerBtn.onclick = () => drawer.classList.remove("open");
 
-// Init on load
+// Initialize app
 window.onload = () => {
   loadSession();
 };
