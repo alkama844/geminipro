@@ -13,7 +13,7 @@ function checkSession() {
     })
     .catch(err => {
       console.error("Error checking session:", err);
-      window.location.href = "login.html";
+      window.location.href = "login.html"; // Redirect to login if there’s an error
     });
 }
 
@@ -27,18 +27,18 @@ function logout() {
     .catch(err => {
       console.error("Error logging out:", err);
       localStorage.removeItem("session");
-      window.location.href = "login.html";
+      window.location.href = "login.html"; // Redirect even in case of an error
     });
 }
 
-// Initialize session check on page load
-window.onload = () => {
+// Initialize session check immediately on page load
+(function() {
   const sessionData = localStorage.getItem("session");
   if (!sessionData) {
-    window.location.href = "login.html"; // Redirect to login page if no session found
+    window.location.href = "login.html"; // Redirect to login if no session found
   } else {
     const session = JSON.parse(sessionData);
     // Check session validity via the server
     checkSession();
   }
-};
+})();
