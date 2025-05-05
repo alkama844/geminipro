@@ -218,87 +218,57 @@
   </div>
 
   <script>
-  function togglePassword() {
-    const passwordField = document.getElementById('password');
-    const showPasswordBtn = document.querySelector('.show-password-btn');
-    if (passwordField.type === 'password') {
-      passwordField.type = 'text';
-      showPasswordBtn.textContent = 'Hide';
-    } else {
-      passwordField.type = 'password';
-      showPasswordBtn.textContent = 'Show';
-    }
-  }
-
-  document.getElementById('loginForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email) || password === "") {
-      showPopup("Please enter a valid email and password.");
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        window.location.href = "/chat.html";
+    function togglePassword() {
+      const passwordField = document.getElementById('password');
+      const showPasswordBtn = document.querySelector('.show-password-btn');
+      if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        showPasswordBtn.textContent = 'Hide';
       } else {
-        showPopup(data.message || "Login failed. Please try again.");
+        passwordField.type = 'password';
+        showPasswordBtn.textContent = 'Show';
       }
-    } catch (error) {
-      showPopup("An error occurred. Please try again later.");
     }
-  });
 
-  function showPopup(message) {
-    document.getElementById('popupMessage').textContent = message;
-    document.getElementById('popup').style.display = 'block';
-  }
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
 
-  function closePopup() {
-    document.getElementById('popup').style.display = 'none';
-  }
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Assuming your login form has an id of 'login-form' and input fields for email and password
-document.getElementById('login-form').addEventListener('submit', function (e) {
-  e.preventDefault(); // Prevent form submission
+      if (!emailRegex.test(email) || password === "") {
+        showPopup("Please enter a valid email and password.");
+        return;
+      }
 
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
 
-  // Send login request to the server
-  fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include', // To include session cookie in the request
-    body: JSON.stringify({ email, password }) // Sending email and password in the request body
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.message === 'Login successful') {
-      // Redirect to chat page after successful login
-      window.location.href = '/chat.html'; // Update with the correct chat page URL
-    } else {
-      alert(data.error || 'Login failed');
+        const data = await res.json();
+
+        if (res.ok) {
+          window.location.href = "/chat.html";
+        } else {
+          showPopup(data.message || "Login failed. Please try again.");
+        }
+      } catch (error) {
+        showPopup("An error occurred. Please try again later.");
+      }
+    });
+
+    function showPopup(message) {
+      document.getElementById('popupMessage').textContent = message;
+      document.getElementById('popup').style.display = 'block';
     }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('An error occurred during login.');
-  });
-});
-    
-</script>
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+  </script>
 </body>
 </html>
