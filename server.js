@@ -297,14 +297,13 @@ app.post("/chat", async (req, res) => {
   }
 
   try {
-    const response = await axios.post(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=GEMINI_API_KEY",
+    const geminiRes = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [
           {
-            parts: [
-              { text: message }
-            ]
+            role: "user",
+            parts: [{ text: message }]
           }
         ]
       },
@@ -315,23 +314,31 @@ app.post("/chat", async (req, res) => {
       }
     );
 
-    const reply = response.data.reply;
-    const chat = {
-      chatId,
-      messages: [
+    const text = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text || "No reply from Gemini.";
+    
+    // Simulate fetching or updating a chat
+    const chatData = {
+      id: chatId || `chat_${Date.now()}`,
+      title: message.slice(0, 20),
+      chat: [
         { role: "user", content: message },
-        { role: "bot", content: reply }
+        { role: "bot", content: text }
       ]
     };
 
-    // Send back the reply from Gemini API
-    res.status(200).json({ reply, chatId, chat });
+    // TODO: Save to chats.json or DB here if user is logged in
+
+    res.status(200).json({
+      reply: text,
+      chatId: chatData.id,
+      chat: chatData.chat
+    });
+
   } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    res.status(500).send({ error: "Failed to generate response from Gemini" });
+    console.error("Gemini API error:", error?.response?.data || error.message);
+    res.status(500).send({ error: "Failed to generate response from Gemini." });
   }
 });
-
 
 // GET /chats/:email - Fetch all user chats
 app.get('/chats/:email', (req, res) => {
