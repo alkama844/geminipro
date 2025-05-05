@@ -1,51 +1,177 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gemini Chat</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Gemini Chat Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --accent: #3b82f6;
+      --bg: #f3f4f6;
+      --text: #111827;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: var(--card-bg);
+      padding: 50px;
+      max-width: 650px;
+      width: 100%;
+      text-align: center;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+      transition: box-shadow 0.3s ease-in-out;
+    }
+
+    .container:hover {
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      margin: 0 auto 25px;
+      overflow: hidden;
+      border: 5px solid var(--primary);
+      animation: float 4s ease-in-out infinite;
+      transition: transform 0.6s ease;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar:hover {
+      transform: rotate(360deg);
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .creator {
+      font-size: 1.1rem;
+      color: #4b5563;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+
+    .creator .name {
+      font-weight: 800;
+      color: var(--text);
+      font-size: 1.2rem;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #000;
+      color: #fff;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      margin-left: 6px;
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    a {
+      background-color: var(--primary);
+      color: #fff;
+      padding: 14px 30px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    a:hover {
+      background-color: white;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      
+
+      a {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
 </head>
 <body>
-  <!-- Drawer Toggle -->
-  <button id="open-drawer" class="drawer-toggle-btn">☰</button>
-
-  <!-- Chat Drawer -->
-  <div class="drawer" id="drawer">
-    <h3>Your Chats</h3>
-    <div id="chat-list"></div>
-    <button id="new-chat-btn" class="drawer-btn">+ New Chat</button>
-    <button class="close-btn" id="close-drawer">Close</button>
-  </div>
-
-  <!-- Main Chat Container -->
   <div class="container">
-    <header>
-      <span id="current-chat-title">Gemini Chat</span>
-      <button id="rename-chat-btn" title="Rename Chat" class="header-btn">✏️</button>
-    </header>
-
-    <div class="chat-box" id="chat-box"></div>
-    <div id="thinking-indicator" style="display: none;" class="thinking-indicator">Thinking...</div>
-
-    <div class="chat-controls">
-      <input type="text" id="user-input" placeholder="Type your message..." class="chat-input"/>
-      <button id="send-btn" class="action-btn">Send</button>
+    <div class="avatar">
+      <img src="https://raw.githubusercontent.com/alkama844/geminipro/refs/heads/main/res/IMG_20250503_175514-1.jpg" alt="Nafij Image" />
     </div>
-
+    <h1>Gemini Chat Pro</h1>
+    <p class="creator">
+      Created by <span class="name">Nafij Rahaman<span class="verified-badge">✔</span></span>
+    </p>
     <div class="actions">
-      <button id="regenerate-btn" class="action-btn">Regenerate</button>
-      <button id="delete-chat-btn" class="action-btn">Delete Chat</button>
-      <button id="logout-btn" class="action-btn">Logout</button>
+      <a href="/login">Login</a>
+      <a href="/signup">Sign Up</a>
     </div>
+    <footer>&copy; 2025 All rights reserved by Nafij Rahaman</footer>
   </div>
-
-  <!-- Theme Toggle -->
-  <button class="theme-toggle" id="theme-toggle">Toggle Theme</button>
-
-  <!-- Scripts -->
-  <script src="js/auth.js" defer></script>
-  <script src="js/theme.js" defer></script>
-  <script src="js/chat.js" defer></script>
 </body>
 </html>
