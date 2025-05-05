@@ -45,14 +45,14 @@ if (!process.env.GEMINI_API_KEY) {
   console.log('[INFO] GEMINI_API_KEY is set. Gemini features are ENABLED.');
 }
 
-// Middleware
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gemini_secret_key',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
     maxAge: 24 * 60 * 60 * 1000, // 1 day
-    secure: false               // Set to true when using HTTPS
+    secure: process.env.NODE_ENV === "production", // true only in production
+    sameSite: "lax" // Helps prevent CSRF, allows cookies in normal usage
   }
 }));
 
