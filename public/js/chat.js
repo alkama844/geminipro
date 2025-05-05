@@ -13,8 +13,9 @@ const newChatBtn = document.getElementById("new-chat-btn");
 let session = null;
 let currentChatId = null;
 let lastUserMessage = "";
+let isSending = false;
 
-// Utility: Show a message
+// Show user or bot message
 function showMessage(sender, text) {
   const message = document.createElement("div");
   message.classList.add("message", sender);
@@ -25,12 +26,12 @@ function showMessage(sender, text) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Utility: Toggle thinking animation
+// Toggle thinking animation
 function toggleThinking(show) {
   thinkingIndicator.style.display = show ? "block" : "none";
 }
 
-// Load user session (check cookies)
+// Load session via cookie check
 function loadSession() {
   fetch("/api/session", { credentials: "include" })
     .then(res => res.json())
@@ -39,24 +40,20 @@ function loadSession() {
         session = { email: data.email };
         refreshChatList();
       } else {
-        console.warn("No session found. Using local mode.");
         loadLocalChats();
       }
     })
-    .catch(() => {
-      console.warn("Session check failed. Using local mode.");
-      loadLocalChats();
-    });
+    .catch(() => loadLocalChats());
 }
 
-// Save chat to localStorage
+// Save to localStorage
 function saveChatLocally(chatId, chat) {
   const history = JSON.parse(localStorage.getItem("chatHistory")) || {};
   history[chatId] = chat;
   localStorage.setItem("chatHistory", JSON.stringify(history));
 }
 
-// Load local chats
+// Load from localStorage
 function loadLocalChats() {
   const history = JSON.parse(localStorage.getItem("chatHistory")) || {};
   chatList.innerHTML = "";
@@ -72,13 +69,13 @@ function loadLocalChats() {
   });
 }
 
-// Render all messages
+// Show full chat
 function renderChat(chat) {
   chatBox.innerHTML = "";
   chat.forEach(msg => showMessage(msg.role === "user" ? "user" : "bot", msg.content));
 }
 
-// Load a specific chat by ID
+// Load one chat
 function loadChat(chatId) {
   if (session) {
     fetch(`/chat/${chatId}`, {
@@ -99,7 +96,7 @@ function loadChat(chatId) {
   }
 }
 
-// Refresh all available chats
+// Get all chats
 function refreshChatList() {
   if (!session) return;
   fetch(`/chats`, {
@@ -121,11 +118,12 @@ function refreshChatList() {
     .catch(err => console.error("Error refreshing chat list:", err));
 }
 
-// MAIN: Send message to Gemini backend
+// Send message to backend
 function sendMessage(message) {
-  if (!message.trim()) return;
+  if (!message.trim() || isSending) return;
 
   lastUserMessage = message;
+  isSending = true;
   showMessage("user", message);
   userInput.value = "";
   toggleThinking(true);
@@ -145,25 +143,32 @@ function sendMessage(message) {
     .then(data => {
       currentChatId = data.chatId;
       showMessage("bot", data.reply);
-      toggleThinking(false);
       saveChatLocally(data.chatId, data.chat);
       if (session) refreshChatList();
     })
     .catch(err => {
       console.error("Error sending message:", err);
       showMessage("bot", "Oops! Something went wrong. Try again.");
+    })
+    .finally(() => {
       toggleThinking(false);
+      isSending = false;
     });
 }
 
-// Event handlers
+// Events
 sendBtn.onclick = () => sendMessage(userInput.value);
 userInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") sendMessage(userInput.value);
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // Prevent newline
+    sendMessage(userInput.value);
+  }
 });
+
 regenerateBtn.onclick = () => {
-  if (lastUserMessage) sendMessage(lastUserMessage);
+  if (lastUserMessage && !isSending) sendMessage(lastUserMessage);
 };
+
 logoutBtn.onclick = () => {
   fetch("/api/logout", { method: "POST", credentials: "include" })
     .then(() => {
@@ -174,15 +179,15 @@ logoutBtn.onclick = () => {
     })
     .catch(err => console.error("Logout failed:", err));
 };
+
 newChatBtn.onclick = () => {
   currentChatId = null;
   lastUserMessage = "";
   chatBox.innerHTML = "";
 };
+
 openDrawerBtn.onclick = () => drawer.classList.add("open");
 closeDrawerBtn.onclick = () => drawer.classList.remove("open");
 
-// Initialize app
-window.onload = () => {
-  loadSession();
-};
+// Init
+window.onload = () => loadSession();
