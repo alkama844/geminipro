@@ -303,7 +303,7 @@ app.post("/chat", async (req, res) => {
       parts: [{ text: msg.content }]
     }));
 
-    // Add the current message
+    // Add the current user message
     contents.push({
       role: "user",
       parts: [{ text: message }]
@@ -320,41 +320,28 @@ app.post("/chat", async (req, res) => {
 
     const text = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text || "No reply from Gemini.";
 
-    // Build new chat message array
+    // Build updated chat array
     const updatedChat = [
       ...(history || []),
       { role: "user", content: message },
       { role: "bot", content: text }
     ];
 
-    const responseData = {
+    // Send back final response
+    res.status(200).json({
       reply: text,
       chatId: chatId || `chat_${Date.now()}`,
       chat: updatedChat
-    };
-
-    res.status(200).json(responseData);
-
-  } catch (error) {
-    console.error("Gemini API error:", error?.response?.data || error.message);
-    res.status(500).json({ error: "Failed to generate response from Gemini." });
-  }
-});
-    // Optional: save to file/db here
-
-    return res.status(200).json({
-      reply: text,
-      chatId: newChatId,
-      chat
     });
 
   } catch (error) {
-    console.error("Gemini API Error:", error?.response?.data || error.message);
-    return res.status(500).json({
+    console.error("Gemini API error:", error?.response?.data || error.message);
+    res.status(500).json({
       error: "Failed to generate a response. Please try again later."
     });
   }
 });
+
 
 // GET /chats/:email - Fetch all user chats
 app.get('/chats/:email', (req, res) => {
