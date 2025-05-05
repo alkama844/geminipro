@@ -255,24 +255,7 @@ app.get('/users', (req, res) => {
   });
 });
 
-// ===== Route 1: Authenticated Session-Based Chat =====
-app.post('/api/gemini', async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
 
-  const result = await getGeminiReply(prompt);
-  if (!result.success) return res.status(500).json({ error: result.error });
-
-  const chats = readJSON(CHATS_FILE);
-  if (!chats[req.session.user]) chats[req.session.user] = [];
-
-  chats[req.session.user].push({ role: 'user', content: prompt });
-  chats[req.session.user].push({ role: 'ai', content: result.response });
-
-  writeJSON(CHATS_FILE, chats);
-
-  res.json({ response: result.response });
-});
 
 // ===== Route 2: Get All Chats (for session-based users) =====
 app.get('/chats', (req, res) => {
