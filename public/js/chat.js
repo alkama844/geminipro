@@ -157,6 +157,8 @@ function sendMessage(message) {
 }
 
 // Events
+// Remove the duplicate sendBtn.onclick
+// This code will be enough:
 sendBtn.onclick = () => sendMessage(userInput.value);
 userInput.addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) {
@@ -165,14 +167,7 @@ userInput.addEventListener("keydown", e => {
   }
 });
 
-// Events
-sendBtn.onclick = () => sendMessage(userInput.value);
-userInput.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault(); // Prevent newline
-    sendMessage(userInput.value);
-  }
-});
+
 
 regenerateBtn.onclick = () => {
   if (lastUserMessage && !isSending) sendMessage(lastUserMessage);
