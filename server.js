@@ -289,42 +289,57 @@ app.get('/chats', (req, res) => {
 });
 
 app.post("/chat", async (req, res) => {
-  const { message, chatId } = req.body;
+app.post("/chat", async (req, res) => {
+  const { message, chatId, history } = req.body;
 
-  if (!message || typeof message !== "string" || message.trim() === "") {
-    return res.status(400).json({ error: "Message cannot be empty or invalid." });
+  if (!message) {
+    return res.status(400).json({ error: "Message cannot be empty" });
   }
 
   try {
+    // Build chat history for context
+    const contents = (history || []).map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content }]
+    }));
+
+    // Add the current message
+    contents.push({
+      role: "user",
+      parts: [{ text: message }]
+    });
+
+    // Call Gemini API
     const geminiRes = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      { contents },
       {
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: message }]
-          }
-        ]
-      },
-      {
-        headers: {
-          "Content-Type": "application/json"
-        }
+        headers: { "Content-Type": "application/json" }
       }
     );
 
-    const text = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const text = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text || "No reply from Gemini.";
 
-    if (!text) {
-      return res.status(500).json({ error: "Gemini gave no response." });
-    }
-
-    const newChatId = chatId || `chat_${Date.now()}`;
-    const chat = [
+    // Build new chat message array
+    const updatedChat = [
+      ...(history || []),
       { role: "user", content: message },
       { role: "bot", content: text }
     ];
 
+    const responseData = {
+      reply: text,
+      chatId: chatId || `chat_${Date.now()}`,
+      chat: updatedChat
+    };
+
+    res.status(200).json(responseData);
+
+  } catch (error) {
+    console.error("Gemini API error:", error?.response?.data || error.message);
+    res.status(500).json({ error: "Failed to generate response from Gemini." });
+  }
+});
     // Optional: save to file/db here
 
     return res.status(200).json({
