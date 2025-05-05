@@ -9,12 +9,13 @@ const drawer = document.getElementById("drawer");
 const openDrawerBtn = document.getElementById("open-drawer");
 const closeDrawerBtn = drawer.querySelector(".close-btn");
 const chatList = document.getElementById("chat-list");
+const newChatBtn = document.getElementById("new-chat-btn");
 
 let session = null;
 let currentChatId = null;
 let lastUserMessage = "";
 
-// Function to display messages (user or bot)
+// Show message in chat
 function showMessage(sender, text) {
   const message = document.createElement("div");
   message.classList.add("message", sender);
@@ -26,42 +27,43 @@ function showMessage(sender, text) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Toggle the 'thinking' indicator when the bot is processing
+// Toggle "thinking..." indicator
 function toggleThinking(show) {
   thinkingIndicator.style.display = show ? "block" : "none";
 }
 
-// Function to load session data
+// Load user session
 function loadSession() {
   fetch("/api/session", { credentials: "include" })
     .then(res => res.json())
     .then(data => {
       if (data.loggedIn) {
-        session = { email: data.email }; // Store session locally
+        session = { email: data.email };
+        refreshChatList();
       } else {
-        window.location.href = "login.html"; // Redirect to login page if not logged in
+        window.location.href = "login.html";
       }
     })
     .catch(err => {
       console.error("Session check failed:", err);
-      window.location.href = "login.html"; // Redirect to login if session check fails
+      window.location.href = "login.html";
     });
 }
 
-// Save chat history locally
+// Save chat to localStorage
 function saveChatLocally(chatId, chat) {
   let history = JSON.parse(localStorage.getItem("chatHistory")) || {};
   history[chatId] = chat;
   localStorage.setItem("chatHistory", JSON.stringify(history));
 }
 
-// Render a chat history into the chat box
+// Render chat messages
 function renderChat(chat) {
   chatBox.innerHTML = "";
   chat.forEach(msg => showMessage(msg.role === "user" ? "user" : "bot", msg.content));
 }
 
-// Load a specific chat by ID
+// Load chat by ID
 function loadChat(chatId) {
   fetch(`/chat/${chatId}`, {
     headers: { "Authorization": session.email }
@@ -71,10 +73,10 @@ function loadChat(chatId) {
       currentChatId = chatId;
       renderChat(data.chat);
     })
-    .catch(err => console.error('Error loading chat:', err));
+    .catch(err => console.error("Error loading chat:", err));
 }
 
-// Refresh the list of chats
+// Refresh chat list in drawer
 function refreshChatList() {
   fetch(`/chats`, {
     headers: { "Authorization": session.email }
@@ -85,77 +87,82 @@ function refreshChatList() {
       data.chats.forEach(chat => {
         const btn = document.createElement("button");
         btn.textContent = chat.title || "Untitled Chat";
-        btn.onclick = () => loadChat(chat.id);
+        btn.onclick = () => {
+          drawer.classList.remove("open");
+          loadChat(chat.id);
+        };
         chatList.appendChild(btn);
       });
     })
-    .catch(err => console.error('Error refreshing chat list:', err));
+    .catch(err => console.error("Error refreshing chat list:", err));
 }
 
-// Send message to the backend and get the response
+// Send a message to the bot
 function sendMessage(message) {
-  if (!message.trim()) return; // Don't send if the message is empty
+  if (!message.trim()) return;
 
-  lastUserMessage = message; // Store the last user message
-  showMessage("user", message); // Display user's message in chat
-  userInput.value = ""; // Clear the input field
-  toggleThinking(true); // Show the thinking indicator while processing
+  lastUserMessage = message;
+  showMessage("user", message);
+  userInput.value = "";
+  toggleThinking(true);
 
   fetch("/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": session.email // Pass session email for user identification
+      "Authorization": session.email
     },
     body: JSON.stringify({ chatId: currentChatId, message })
   })
     .then(res => res.json())
     .then(data => {
-      currentChatId = data.chatId; // Update the current chat ID
-      showMessage("bot", data.reply); // Display bot's response
-      toggleThinking(false); // Hide the thinking indicator
-      saveChatLocally(data.chatId, data.chat); // Save the chat history locally
-      refreshChatList(); // Refresh the list of chats after a new message
+      currentChatId = data.chatId;
+      showMessage("bot", data.reply);
+      toggleThinking(false);
+      saveChatLocally(data.chatId, data.chat);
+      refreshChatList();
     })
     .catch(err => {
       console.error(err);
-      toggleThinking(false); // Hide the thinking indicator on error
+      toggleThinking(false);
     });
 }
 
-// Event listeners for sending messages
+// Event listeners
 sendBtn.onclick = () => sendMessage(userInput.value);
 userInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") sendMessage(userInput.value); // Send message on Enter key press
+  if (e.key === "Enter") sendMessage(userInput.value);
 });
 
-// Regenerate the last message from the user
 regenerateBtn.onclick = () => {
-  if (lastUserMessage) sendMessage(lastUserMessage); // Send the last message again
+  if (lastUserMessage) sendMessage(lastUserMessage);
 };
 
-// Logout functionality
 logoutBtn.onclick = () => {
-  localStorage.removeItem("session"); // Clear session data from local storage
-  window.location.href = "login.html"; // Redirect to the login page
+  localStorage.removeItem("session");
+  window.location.href = "login.html";
 };
 
-// Theme toggle (light/dark)
 themeToggle.onclick = () => {
   const currentTheme = document.documentElement.getAttribute("data-theme");
-  const nextTheme = currentTheme === "dark" ? "light" : "dark"; // Toggle between dark and light
+  const nextTheme = currentTheme === "dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", nextTheme);
-  localStorage.setItem("theme", nextTheme); // Save the selected theme to localStorage
+  localStorage.setItem("theme", nextTheme);
 };
 
-// Initialize settings on page load
-window.onload = () => {
-  loadSession(); // Load session when the page loads
-  const savedTheme = localStorage.getItem("theme") || "light"; // Get saved theme or default to light
-  document.documentElement.setAttribute("data-theme", savedTheme); // Set the page's theme
-  refreshChatList(); // Refresh the chat list
+newChatBtn.onclick = () => {
+  currentChatId = null;
+  lastUserMessage = "";
+  chatBox.innerHTML = "";
 };
 
-// Open and close the settings drawer
+// Open/close drawer
 openDrawerBtn.onclick = () => drawer.classList.add("open");
 closeDrawerBtn.onclick = () => drawer.classList.remove("open");
+
+// Init on load
+window.onload = () => {
+  loadSession();
+  const savedTheme = localStorage.getItem("theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+};
