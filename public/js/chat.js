@@ -123,7 +123,7 @@ function sendMessage(message) {
   if (!message.trim() || isSending) return;
 
   lastUserMessage = message;
-  let isSending = false;
+  isSending = true; // Lock the isSending flag
   showMessage("user", message);
   userInput.value = "";
   toggleThinking(true);
@@ -152,9 +152,18 @@ function sendMessage(message) {
     })
     .finally(() => {
       toggleThinking(false);
-      isSending = false;
+      isSending = false; // Unlock after message is sent
     });
 }
+
+// Events
+sendBtn.onclick = () => sendMessage(userInput.value);
+userInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // Prevent newline
+    sendMessage(userInput.value);
+  }
+});
 
 // Events
 sendBtn.onclick = () => sendMessage(userInput.value);
