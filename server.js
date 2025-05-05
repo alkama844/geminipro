@@ -231,9 +231,8 @@ app.get('/api/userinfo', (req, res) => {
 });
 
 
-// Serve index.html for root
-app.get('/', (_, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
 });
 
 
