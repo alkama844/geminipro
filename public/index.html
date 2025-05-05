@@ -13,6 +13,7 @@
       --text: #111827;
       --card-bg: #ffffff;
       --border: #e5e7eb;
+      --link-border: #87CEEB; /* Soft sky color for border */
     }
 
     * {
@@ -97,6 +98,19 @@
       align-items: center;
     }
 
+    .creator .name a {
+      border: 3px solid var(--link-border); /* Soft sky color border */
+      border-radius: 5px;
+      padding: 2px 6px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .creator .name a:hover {
+      border-color: var(--primary); /* Primary color on hover */
+    }
+
     .verified-badge {
       display: inline-flex;
       align-items: center;
@@ -148,32 +162,6 @@
       h1 {
         font-size: 2rem;
       }
-
-      .avatar {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  margin: 0 auto 25px;
-  overflow: hidden;
-  border: 5px solid var(--primary);
-  animation: float 4s ease-in-out infinite;
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 1s ease;
-}
-
-.avatar:hover img {
-  transform: rotate(360deg);
-}
-
-      a {
-        width: 100%;
-        text-align: center;
-      }
     }
   </style>
 </head>
@@ -184,41 +172,21 @@
     </div>
     <h1>Gemini Chat Pro</h1>
 
-<p class="creator">
-  Created by
-  <span class="name">
-    <a href="https://www.facebook.com/share/19RGeMADT2/" onclick="openFacebook()">
-      Nafij Rahaman
-    </a>
-    <span class="verified-badge">✔</span>
-  </span>
-</p>
+    <p class="creator">
+      Created by
+      <span class="name">
+        <a href="https://www.facebook.com/nafijrahaman2023" target="_blank">
+          Nafij Rahaman
+        </a>
+        <span class="verified-badge">✔</span>
+      </span>
+    </p>
 
-    
     <div class="actions">
       <a href="/login">Login</a>
       <a href="/signup">Sign Up</a>
     </div>
     <footer>&copy; 2025 All rights reserved by Nafij Rahaman</footer>
   </div>
-
-<script>
-  function openFacebook() {
-    const appLink = "https://www.facebook.com/share/19RGeMADT2/"; // Replace with your real uid
-    const webLink = "https://www.facebook.com/nafijrahaman2023";
-
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    if (isMobile) {
-      window.location = appLink;
-      setTimeout(() => {
-        window.location = webLink;
-      }, 500);
-    } else {
-      window.open(webLink, "_blank");
-    }
-  }
-</script>
-  
 </body>
 </html>
