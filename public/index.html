@@ -183,14 +183,42 @@
       <img src="https://raw.githubusercontent.com/alkama844/geminipro/refs/heads/main/res/IMG_20250503_175514-1.jpg" alt="Nafij Image" />
     </div>
     <h1>Gemini Chat Pro</h1>
-    <p class="creator">
-      Created by <span class="name">Nafij Rahaman<span class="verified-badge">✔</span></span>
-    </p>
+
+<p class="creator">
+  Created by
+  <span class="name">
+    <a href="#" onclick="openFacebook()" style="text-decoration: none; color: inherit;">
+      Nafij Rahaman
+    </a>
+    <span class="verified-badge">✔</span>
+  </span>
+</p>
+
+    
     <div class="actions">
       <a href="/login">Login</a>
       <a href="/signup">Sign Up</a>
     </div>
     <footer>&copy; 2025 All rights reserved by Nafij Rahaman</footer>
   </div>
+
+<script>
+  function openFacebook() {
+    const appLink = "fb://profile/100092357994242"; // Replace with your real numeric FB ID
+    const webLink = "https://www.facebook.com/nafijrahaman2023";
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      window.location = appLink;
+      setTimeout(() => {
+        window.location = webLink;
+      }, 500);
+    } else {
+      window.open(webLink, "_blank");
+    }
+  }
+</script>
+  
 </body>
 </html>
