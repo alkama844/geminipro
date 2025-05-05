@@ -255,22 +255,6 @@ app.get('/users', (req, res) => {
   });
 });
 
-
-
-// ===== Route 2: Get All Chats (for session-based users) =====
-app.get('/chats', (req, res) => {
-  const chatPath = path.join(__dirname, 'data', 'chats.json');
-  try {
-    if (!fs.existsSync(chatPath)) return res.json({});
-    const data = fs.readFileSync(chatPath, 'utf8');
-    const chats = JSON.parse(data || '{}');
-    res.json(chats);
-  } catch (err) {
-    console.error('Failed to read chats:', err);
-    res.status(500).json({ error: 'Failed to load chat history' });
-  }
-});
-
 app.post("/chat", async (req, res) => {
   const { message, chatId, history } = req.body;
 
@@ -279,7 +263,7 @@ app.post("/chat", async (req, res) => {
   }
 
   try {
-    // Build chat history for context
+    // Ensure history is always an array
     const contents = (history || []).map(msg => ({
       role: msg.role,
       parts: [{ text: msg.content }]
@@ -295,9 +279,7 @@ app.post("/chat", async (req, res) => {
     const geminiRes = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       { contents },
-      {
-        headers: { "Content-Type": "application/json" }
-      }
+      { headers: { "Content-Type": "application/json" } }
     );
 
     // Log the response data to check its structure
@@ -311,6 +293,11 @@ app.post("/chat", async (req, res) => {
       { role: "user", content: message },
       { role: "bot", content: text }
     ];
+
+    // Save the updated chat to the chat file
+    const chats = readJSON(CHATS_FILE);
+    chats[chatId] = updatedChat;
+    writeJSON(CHATS_FILE, chats);
 
     // Send back final response
     res.status(200).json({
@@ -327,6 +314,20 @@ app.post("/chat", async (req, res) => {
       error: "Failed to generate a response. Please try again later.",
       details: error?.response?.data || error.message
     });
+  }
+});
+
+// ===== Route 2: Get All Chats (for session-based users) =====
+app.get('/chats', (req, res) => {
+  const chatPath = path.join(__dirname, 'data', 'chats.json');
+  try {
+    if (!fs.existsSync(chatPath)) return res.json({});
+    const data = fs.readFileSync(chatPath, 'utf8');
+    const chats = JSON.parse(data || '{}');
+    res.json(chats);
+  } catch (err) {
+    console.error('Failed to read chats:', err);
+    res.status(500).json({ error: 'Failed to load chat history' });
   }
 });
 
