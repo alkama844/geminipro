@@ -20,7 +20,7 @@ function showMessage(sender, text) {
   const message = document.createElement("div");
   message.classList.add("message", sender);
   message.innerHTML = `
-    <img src="${sender === 'user' ? 'assets/user.png' : 'assets/bot.png'}" alt="${sender}">
+    <img src="${sender === 'user' ? 'user.png' : 'assets/ai.png'}" alt="${sender}">
     <div class="message-content">${text}</div>`;
   chatBox.appendChild(message);
   chatBox.scrollTop = chatBox.scrollHeight;
@@ -158,7 +158,7 @@ function sendMessage(message) {
       if (err.message.includes("Gemini backend error")) {
         showMessage("bot", "Sorry, we couldn't process your request right now. Please try again later.");
       } else {
-        showMessage("bot", "Oops! Something went wrong. Try again.");
+        showMessage(thanks for using ⚡✨");
       }
     })
     .finally(() => {
