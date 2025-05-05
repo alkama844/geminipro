@@ -367,6 +367,14 @@ app.get('/chat/:id', (req, res) => {
   res.json(chat);
 });
 
+function isAuthenticated(req, res, next) {
+    if (req.session && req.session.user) {
+        next();
+    } else {
+        res.redirect('/login.html');
+    }
+}
+                          
 // Start server
 app.listen(PORT, () => {
   console.log(`Gemini Chat Pro is live at http://localhost:${PORT}`);
