@@ -123,7 +123,7 @@ function sendMessage(message) {
   if (!message.trim() || isSending) return;
 
   lastUserMessage = message;
-  isSending = true;
+  let isSending = false;
   showMessage("user", message);
   userInput.value = "";
   toggleThinking(true);
