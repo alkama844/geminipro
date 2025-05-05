@@ -119,6 +119,7 @@ function refreshChatList() {
 }
 
 // Send message to backend
+// Send message to backend
 function sendMessage(message) {
   if (!message.trim() || isSending) return;
 
@@ -137,7 +138,12 @@ function sendMessage(message) {
     body: JSON.stringify({ chatId: currentChatId, message })
   })
     .then(res => {
-      if (!res.ok) throw new Error("Gemini backend error.");
+      if (!res.ok) {
+        // Handle specific response errors
+        return res.text().then(text => { 
+          throw new Error(text || "Gemini backend error."); 
+        });
+      }
       return res.json();
     })
     .then(data => {
@@ -147,8 +153,13 @@ function sendMessage(message) {
       if (session) refreshChatList();
     })
     .catch(err => {
+      // More detailed error logging
       console.error("Error sending message:", err);
-      showMessage("bot", "Oops! Something went wrong. Try again.");
+      if (err.message.includes("Gemini backend error")) {
+        showMessage("bot", "Sorry, we couldn't process your request right now. Please try again later.");
+      } else {
+        showMessage("bot", "Oops! Something went wrong. Try again.");
+      }
     })
     .finally(() => {
       toggleThinking(false);
