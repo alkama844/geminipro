@@ -26,8 +26,8 @@ function logout() {
     })
     .catch(err => {
       console.error("Error logging out:", err);
-      localStorage.removeItem("session");
-      window.location.href = "login.html"; // Redirect even in case of an error
+      localStorage.removeItem("session"); // Clear session data even if logout fails
+      window.location.href = "login.html"; // Redirect to login page after logout
     });
 }
 
