@@ -97,25 +97,18 @@
       font-size: 1.2rem;
       display: inline-flex;
       align-items: center;
-      border: 3px solid var(--link-border); /* Soft sky color for border */
-      padding: 5px 10px;
-      border-radius: 5px;
-      transition: all 0.3s ease;
+      margin-bottom: 10px;
     }
 
     .creator .name a {
       text-decoration: none;
       color: inherit;
+      border: none;  /* Remove the blue border */
+      padding: 0;    /* Remove any padding */
     }
 
-    .creator .name:hover {
-      border-color: var(--primary); /* Change border on hover */
-    }
-
-    /* Move the verified badge below the border */
-    .verified-badge {
-      display: block;
-      margin-top: 5px;
+    .creator .verified-badge {
+      display: inline-block;
       background-color: #000;
       color: #fff;
       width: 18px;
@@ -123,8 +116,7 @@
       border-radius: 50%;
       font-size: 12px;
       line-height: 18px;
-      margin-left: auto;
-      margin-right: auto;
+      margin-left: 6px;
     }
 
     .actions {
@@ -181,8 +173,8 @@
         <a href="https://www.facebook.com/nafijrahaman2023" target="_blank">
           Nafij Rahaman
         </a>
+        <span class="verified-badge">✓</span> <!-- Checkmark beside the name -->
       </span>
-      <span class="verified-badge">✔</span>
     </p>
 
     <div class="actions">
