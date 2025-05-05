@@ -40,6 +40,7 @@ app.get('/api/session', (req, res) => {
 });
 
 // Middleware
+app.use(express.static(path.join(__dirname, 'public')));
  app.use(express.static('public'));
  app.use(bodyParser.json());
  app.use(bodyParser.urlencoded({ extended: true }));
