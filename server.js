@@ -7,7 +7,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const { body, validationResult } = require('express-validator');
-
+const cors = require('cors');
 
 const app = express();
 
@@ -17,6 +17,26 @@ app.use(express.json()); // For parsing application/json
 app.use(express.urlencoded({ extended: true })); 
 const USERS_FILE = './data/users.json';
 const CHATS_FILE = './data/chats.json';
+
+
+
+app.use(cors({
+  origin: 'https://geminipronafij.onrender.com/',  // Change to your front-end URL
+  credentials: true  // Allow cookies to be sent with requests
+}));
+
+app.get('/api/session', (req, res) => {
+  if (req.session.user) {
+    res.json({
+      loggedIn: true,
+      email: req.session.user.email
+    });
+  } else {
+    res.json({
+      loggedIn: false
+    });
+  }
+});
 
 // Middleware
  app.use(express.static('public'));
