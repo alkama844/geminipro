@@ -64,10 +64,11 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transition: transform 1s ease;
     }
 
-    .avatar:hover {
-      transform: rotate(360deg);
+    .avatar:hover img {
+      transform: rotate(360deg); /* Rotate 360° on hover */
     }
 
     @keyframes float {
@@ -96,32 +97,34 @@
       font-size: 1.2rem;
       display: inline-flex;
       align-items: center;
+      border: 3px solid var(--link-border); /* Soft sky color for border */
+      padding: 5px 10px;
+      border-radius: 5px;
+      transition: all 0.3s ease;
     }
 
     .creator .name a {
-      border: 3px solid var(--link-border); /* Soft sky color border */
-      border-radius: 5px;
-      padding: 2px 6px;
-      transition: all 0.3s ease;
       text-decoration: none;
       color: inherit;
     }
 
-    .creator .name a:hover {
-      border-color: var(--primary); /* Primary color on hover */
+    .creator .name:hover {
+      border-color: var(--primary); /* Change border on hover */
     }
 
+    /* Move the verified badge below the border */
     .verified-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      display: block;
+      margin-top: 5px;
       background-color: #000;
       color: #fff;
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      margin-left: 6px;
       font-size: 12px;
+      line-height: 18px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .actions {
@@ -178,8 +181,8 @@
         <a href="https://www.facebook.com/nafijrahaman2023" target="_blank">
           Nafij Rahaman
         </a>
-        <span class="verified-badge">✔</span>
       </span>
+      <span class="verified-badge">✔</span>
     </p>
 
     <div class="actions">
